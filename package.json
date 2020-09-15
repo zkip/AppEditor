@@ -1,0 +1,28 @@
+{
+	"name": "AppEditor",
+	"version": "1.0.0",
+	"scripts": {
+		"makeComponent": "rollup -c component_maker/rollup.config.js",
+		"dev": "next dev",
+		"build": "next build",
+		"start": "next start"
+	},
+	"repository": "https://github.com/github:zkip/AppEditor.git",
+	"author": "zkip <zkiplan@qq.com>",
+	"license": "MIT",
+	"dependencies": {
+		"next": "^9.5.3",
+		"react": "^16.13.1",
+		"react-dom": "^16.13.1"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.11.6",
+		"@babel/preset-env": "^7.11.5",
+		"@babel/preset-react": "^7.10.4",
+		"@rollup/plugin-babel": "^5.2.1",
+		"@rollup/plugin-commonjs": "^15.0.0",
+		"@rollup/plugin-node-resolve": "^9.0.0",
+		"@rollup/plugin-replace": "^2.3.3",
+		"rollup": "^2.26.11"
+	}
+}
