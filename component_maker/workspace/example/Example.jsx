@@ -1,12 +1,15 @@
 import React from "react";
-const Example = () => {
-	return <div>This is a exmaple.</div>;
-};
-
-export { HellO };
+import moment, { mo } from "moment";
+import { joinBySpace } from "./lib/arr";
+import Other from "./Other.jsx";
 
 export default () => {
-	return <div>This is a exmaple.</div>;
+	console.log(joinBySpace("X", "A", "B"));
+	return (
+		<div>
+			This is a exmaple.<Other>sdef</Other>
+		</div>
+	);
 };
 
 function HellO() {}

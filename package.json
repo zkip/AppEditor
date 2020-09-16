@@ -2,6 +2,7 @@
 	"name": "AppEditor",
 	"version": "1.0.0",
 	"scripts": {
+		"makeComponent:w": "rollup -w -c component_maker/rollup.config.js",
 		"makeComponent": "rollup -c component_maker/rollup.config.js",
 		"dev": "next dev",
 		"build": "next build",
@@ -11,10 +12,13 @@
 	"author": "zkip <zkiplan@qq.com>",
 	"license": "MIT",
 	"dependencies": {
-		"escodegen": "^2.0.0",
+		"acorn": "^8.0.1",
 		"next": "^9.5.3",
 		"react": "^16.13.1",
 		"react-dom": "^16.13.1"
+	},
+	"peerDependencies": {
+		"rollup": "^2.26.11"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.11.6",
@@ -23,7 +27,6 @@
 		"@rollup/plugin-babel": "^5.2.1",
 		"@rollup/plugin-commonjs": "^15.0.0",
 		"@rollup/plugin-node-resolve": "^9.0.0",
-		"@rollup/plugin-replace": "^2.3.3",
-		"rollup": "^2.26.11"
+		"@rollup/plugin-replace": "^2.3.3"
 	}
 }
