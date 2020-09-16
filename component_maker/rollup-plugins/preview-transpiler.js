@@ -24,19 +24,22 @@ export default ({ meta }) => {
 		buildEnd() {
 			console.log(m, "---------------", meta);
 		},
-		// transform(code, id) {
-		// 	const ast = this.parse(code);
-		// 	const transformed_ast = transform(ast);
-		// 	const code_transpiled = generate(ast);
-		// 	console.log(ast, "-----", transformed_ast);
-		// 	console.log("--------------------------------");
-		// 	console.log(code_transpiled);
-		// 	return {
-		// 		id,
-		// 		code: code_transpiled,
-		// 		moduleSideEffects: true,
-		// 	};
-		// },
+		transform(code, id) {
+			// const ast = this.parse(code);
+			// const transformed_ast = transform(ast);
+			// const code_transpiled = generate(ast);
+			// console.log(ast, "-----", transformed_ast);
+			// console.log("--------------------------------");
+			// console.log(code_transpiled);
+			// return {
+			// 	id,
+			// 	code: code_transpiled,
+			// 	moduleSideEffects: true,
+			// };
+
+			console.log("*************");
+			console.log(this.getModuleInfo(id));
+		},
 	};
 };
 

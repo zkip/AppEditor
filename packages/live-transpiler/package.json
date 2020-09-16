@@ -1,0 +1,26 @@
+{
+	"name": "live-transpiler",
+	"version": "0.0.1",
+	"main": "index.js",
+	"scripts": {
+		"build": "rollup -c rollup.config.js",
+		"run:cli": "node cli/transpile",
+		"tick": "yarn build && yarn run:cli"
+	},
+	"bin": {
+		"live-transpile": "cli/transpile"
+	},
+	"license": "MIT",
+	"peerDependencies": {
+		"rollup": "^2.26.11"
+	},
+	"devDependencies": {
+		"@rollup/plugin-commonjs": "^15.0.0",
+		"@rollup/plugin-node-resolve": "^9.0.0",
+		"rollup-plugin-cli": "^0.1.5"
+	},
+	"dependencies": {
+		"shelljs": "^0.8.4",
+		"yargs": "^16.0.3"
+	}
+}

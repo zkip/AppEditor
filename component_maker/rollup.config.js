@@ -18,7 +18,7 @@ export default {
 	output: {
 		exports: "named",
 		file: resolve("dist/example/index.js"),
-		format: "cjs",
+		// format: "cjs",
 	},
 	plugins: [babel(babelOptions), previewTranspiler({ meta })],
 	// external: ["react"],
