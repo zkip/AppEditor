@@ -1,7 +1,9 @@
 import path from "path";
 import { babel } from "@rollup/plugin-babel";
-import previewTranspiler from "./rollup-plugins/preview-transpiler";
-import meta from "./workspace/example/package.json";
+import nodeResolve from "@rollup/plugin-node-resolve";
+import commonjs from "@rollup/plugin-commonjs";
+import replace from "@rollup/plugin-replace";
+import previewTransipler from "./rollup-plugin/preview_transipler";
 
 const babelOptions = {
 	presets: ["@babel/preset-env", "@babel/preset-react"],
@@ -16,10 +18,18 @@ process.chdir("component_maker");
 export default {
 	input: resolve("workspace/example/index.js"),
 	output: {
-		exports: "named",
+		name: "example",
 		file: resolve("dist/example/index.js"),
 		// format: "cjs",
 	},
-	plugins: [babel(babelOptions), previewTranspiler({ meta })],
-	// external: ["react"],
+	plugins: [
+		babel(babelOptions),
+		previewTransipler(),
+		// nodeResolve(),
+		// commonjs(),
+		// replace({
+		// 	"process.env.NODE_ENV": JSON.stringify("production"),
+		// }),
+	],
+	// external: ["moment", "react"],
 };
