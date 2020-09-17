@@ -3,8 +3,145 @@
 'use strict';
 
 var rollup = require('rollup');
+require('escodegen');
+var path = require('path');
+var pkgResolve = require('resolve');
+var pluginBabel = require('@rollup/plugin-babel');
+var rollupPluginUglify = require('rollup-plugin-uglify');
 var yargs = require('yargs');
+var fs = require('fs');
 
-var config = {};
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-console.log("Transpiling...", rollup.rollup, config, yargs.argv, process.cwd());
+var pkgResolve__default = /*#__PURE__*/_interopDefaultLegacy(pkgResolve);
+
+function isExternal(filepath) {
+	// The regex will matched: ., .., ./, ../
+	if (path.isAbsolute(filepath) || /^\.\.?(?=\/)/.test(filepath)) {
+		return false;
+	}
+	return true;
+}
+
+var previewTransipler = ({ meta } = {}) => {
+	return {
+		banner() {
+			return "define(function (exports,require){";
+		},
+		footer() {
+			return `},${JSON.stringify(meta)})`;
+		},
+		resolveId(importee) {
+			if (isExternal(importee)) {
+				return {
+					id: importee,
+					external: true,
+				};
+			}
+		},
+		// renderChunk(code, chunk, options) {
+		// 	return code.replace(
+		// 		/exports\.([^\=\s]*)\s*=\s*([^\;]*);/g,
+		// 		"exports.$1 = { meta, raw: $2 };"
+		// 	);
+		// },
+	};
+};
+
+const babelOptions = {
+	babelHelpers: "bundled",
+	presets: ["@babel/preset-env", "@babel/preset-react"],
+};
+
+var plugins = [[pluginBabel.babel(babelOptions)], [rollupPluginUglify.uglify()]];
+
+const args = yargs.option("", {}).argv;
+
+const { _ } = args;
+const package_location = _.length > 0 ? _[0] : ".";
+const cwd = process.cwd();
+start();
+
+async function start() {
+	const { location } = getMeta();
+	const module_location = path.dirname(location);
+	const { pkg, entry } = await resolveModule(module_location);
+
+	const output_option = {
+		exports: "named",
+		file: path.join(module_location, `live.prod/${pkg.name}.js`),
+		format: "cjs",
+	};
+
+	const [plugins_before, plugins_after] = plugins;
+
+	const bundle = await rollup.rollup({
+		input: entry,
+		plugins: [
+			...plugins_before,
+			previewTransipler({ meta: pkg }),
+			...plugins_after,
+		],
+	});
+
+	await bundle.write(output_option);
+}
+async function resolveModule(start_location) {
+	return new Promise((rv, rj) => {
+		const abs_path = path.resolve(cwd, start_location);
+		pkgResolve__default['default'](abs_path, (err, entry, pkg) => {
+			if (err) {
+				rj(err);
+			} else {
+				rv({ pkg, entry });
+			}
+		});
+	});
+}
+
+function getMeta() {
+	if (package_location) {
+		const abs_path = path.resolve(cwd, package_location);
+		const meta_file_location = findMetaLocation(abs_path);
+
+		if (meta_file_location) {
+			const meta_buffer = fs.readFileSync(meta_file_location);
+			const meta = JSON.parse(meta_buffer);
+			return { meta, location: meta_file_location };
+		}
+	} else {
+		console.error("Cannot access the package location.");
+	}
+}
+
+function findMetaLocation(start_location) {
+	const find = (path$1) => {
+		let is_found = false;
+		const will_pkg_location = path.resolve(path$1, "package.json");
+		const is_existed = fs.existsSync(will_pkg_location);
+
+		if (is_existed) {
+			const stats = fs.statSync(will_pkg_location);
+			const is_file = stats.isFile();
+			if (is_file) {
+				is_found = true;
+			}
+		}
+
+		if (is_found) {
+			return will_pkg_location;
+		} else {
+			const parent_dir = parentDir(path$1);
+			if (parent_dir !== path$1) {
+				return findMetaLocation(parent_dir);
+			} else {
+				console.error("Cannot found meta file.");
+			}
+		}
+	};
+	return find(start_location);
+}
+
+function parentDir(path$1) {
+	return path.resolve(path$1, "../");
+}

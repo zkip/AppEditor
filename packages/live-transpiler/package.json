@@ -4,6 +4,7 @@
 	"main": "index.js",
 	"scripts": {
 		"build": "rollup -c rollup.config.js",
+		"dev": "rollup -w -c rollup.config.js",
 		"run:cli": "node cli/transpile",
 		"tick": "yarn build && yarn run:cli"
 	},
@@ -17,7 +18,8 @@
 	"devDependencies": {
 		"@rollup/plugin-commonjs": "^15.0.0",
 		"@rollup/plugin-node-resolve": "^9.0.0",
-		"rollup-plugin-cli": "^0.1.5"
+		"rollup-plugin-cli": "^0.1.5",
+		"rollup-plugin-uglify": "^6.0.4"
 	},
 	"dependencies": {
 		"shelljs": "^0.8.4",
