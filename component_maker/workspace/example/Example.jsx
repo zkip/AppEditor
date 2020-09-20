@@ -1,13 +1,8 @@
 import React from "react";
-import F from ".ds";
-const Example = () => {
-	return <div>This is a exmaple.</div>;
+// import "./Example.css";
+// import "./A.css";
+import "./CCC.less";
+
+export default ({ age = 13 }) => {
+	return <div className="Example">Example,{age}</div>;
 };
-
-export { HellO };
-
-export default Example;
-
-function HellO() {}
-
-export const FFFFFFFFFFFFF = 12;

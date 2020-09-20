@@ -18,10 +18,14 @@
 	"devDependencies": {
 		"@rollup/plugin-commonjs": "^15.0.0",
 		"@rollup/plugin-node-resolve": "^9.0.0",
+		"less": "^3.12.2",
+		"rollup": "^2.26.11",
 		"rollup-plugin-cli": "^0.1.5",
+		"rollup-plugin-styles": "^3.10.0",
 		"rollup-plugin-uglify": "^6.0.4"
 	},
 	"dependencies": {
+		"rollup": "^2.27.1",
 		"shelljs": "^0.8.4",
 		"yargs": "^16.0.3"
 	}

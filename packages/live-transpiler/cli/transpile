@@ -3,17 +3,18 @@
 'use strict';
 
 var rollup = require('rollup');
-require('escodegen');
 var path = require('path');
 var pkgResolve = require('resolve');
 var pluginBabel = require('@rollup/plugin-babel');
 var rollupPluginUglify = require('rollup-plugin-uglify');
+var styles = require('rollup-plugin-styles');
 var yargs = require('yargs');
 var fs = require('fs');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
 var pkgResolve__default = /*#__PURE__*/_interopDefaultLegacy(pkgResolve);
+var styles__default = /*#__PURE__*/_interopDefaultLegacy(styles);
 
 function isExternal(filepath) {
 	// The regex will matched: ., .., ./, ../
@@ -39,12 +40,6 @@ var previewTransipler = ({ meta } = {}) => {
 				};
 			}
 		},
-		// renderChunk(code, chunk, options) {
-		// 	return code.replace(
-		// 		/exports\.([^\=\s]*)\s*=\s*([^\;]*);/g,
-		// 		"exports.$1 = { meta, raw: $2 };"
-		// 	);
-		// },
 	};
 };
 
@@ -53,7 +48,18 @@ const babelOptions = {
 	presets: ["@babel/preset-env", "@babel/preset-react"],
 };
 
-var plugins = [[pluginBabel.babel(babelOptions)], [rollupPluginUglify.uglify()]];
+var plugins = [
+	[
+		styles__default['default']({
+			mode: "extract",
+			// ... or with relative to output dir/output file's basedir (but not outside of it)
+			mode: ["extract", "awesome-bundle.css"],
+			less: ["less"],
+		}),
+		pluginBabel.babel(babelOptions),
+	],
+	[rollupPluginUglify.uglify()],
+];
 
 const args = yargs.option("", {}).argv;
 

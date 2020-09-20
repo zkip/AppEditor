@@ -1,16 +1,22 @@
 export function genLiveLoader() {
-	let host;
+	let _host = 2;
 
-	const setHost = (host) => (host = host);
-	const load = async (url) => {
+	function setHost(host) {
+		_host = host;
+	}
+
+	function load(url) {
 		const script = document.createElement("script");
 		script.src = url;
+
 		return new Promise((rv, rj) => {
 			script.onload = rv;
 			script.onerror = rj;
-			host.appendChild(script);
+			if (_host) {
+				_host.appendChild(script);
+			}
 		});
-	};
+	}
 
 	return {
 		setHost,

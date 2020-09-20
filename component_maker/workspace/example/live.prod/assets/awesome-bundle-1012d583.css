@@ -1,0 +1,16 @@
+.CCC {
+	background-color: red;
+
+	&-umi {
+		width: 200px;
+	}
+}
+
+.Example {
+	border: 1px solid rebeccapurple;
+}
+
+.Example {
+	font-size: 34px;
+	color: rebeccapurple;
+}

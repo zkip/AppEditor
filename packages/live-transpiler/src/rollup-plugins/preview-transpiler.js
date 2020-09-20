@@ -1,4 +1,3 @@
-import { generate } from "escodegen";
 import { isAbsolute, resolve } from "path";
 
 function isExternal(filepath) {
@@ -25,11 +24,5 @@ export default ({ meta } = {}) => {
 				};
 			}
 		},
-		// renderChunk(code, chunk, options) {
-		// 	return code.replace(
-		// 		/exports\.([^\=\s]*)\s*=\s*([^\;]*);/g,
-		// 		"exports.$1 = { meta, raw: $2 };"
-		// 	);
-		// },
 	};
 };
