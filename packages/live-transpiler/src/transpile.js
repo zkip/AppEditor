@@ -26,6 +26,7 @@ async function start() {
 		exports: "named",
 		file: join(module_location, `live.prod/${pkg.name}.js`),
 		format: "cjs",
+		assetFileNames: `${pkg.name}.css`,
 	};
 
 	const [plugins_before, plugins_after] = plugins;

@@ -1,80 +1,30 @@
-#!/usr/bin/env node
-
-'use strict';
-
-var rollup = require('rollup');
-var path = require('path');
-var resolveAsync$1 = require('resolve');
-var pluginBabel = require('@rollup/plugin-babel');
-var rollupPluginUglify = require('rollup-plugin-uglify');
-var pluginutils = require('@rollup/pluginutils');
-var cssnano = require('cssnano');
-var PQueue = require('p-queue');
-var fs = require('fs-extra');
-var postcss = require('postcss');
-var sourceMap = require('source-map');
-var crypto = require('crypto');
-var cosmiconfig = require('cosmiconfig');
-var valueParser = require('postcss-value-parser');
-var mimeTypes = require('mime-types');
-var modulesValues = require('postcss-modules-values');
-var localByDefault = require('postcss-modules-local-by-default');
-var extractImports = require('postcss-modules-extract-imports');
-var modulesScope = require('postcss-modules-scope');
-var icssUtils = require('icss-utils');
-var yargs = require('yargs');
-var fs$1 = require('fs');
-
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
-
-var path__default = /*#__PURE__*/_interopDefaultLegacy(path);
-var resolveAsync$1__default = /*#__PURE__*/_interopDefaultLegacy(resolveAsync$1);
-var cssnano__default = /*#__PURE__*/_interopDefaultLegacy(cssnano);
-var PQueue__default = /*#__PURE__*/_interopDefaultLegacy(PQueue);
-var fs__default = /*#__PURE__*/_interopDefaultLegacy(fs);
-var postcss__default = /*#__PURE__*/_interopDefaultLegacy(postcss);
-var valueParser__default = /*#__PURE__*/_interopDefaultLegacy(valueParser);
-var modulesValues__default = /*#__PURE__*/_interopDefaultLegacy(modulesValues);
-var localByDefault__default = /*#__PURE__*/_interopDefaultLegacy(localByDefault);
-var extractImports__default = /*#__PURE__*/_interopDefaultLegacy(extractImports);
-var modulesScope__default = /*#__PURE__*/_interopDefaultLegacy(modulesScope);
-
-function isExternal(filepath) {
-	// The regex will matched: ., .., ./, ../
-	if (path.isAbsolute(filepath) || /^\.\.?(?=\/)/.test(filepath)) {
-		return false;
-	}
-	return true;
-}
-
-var previewTransipler = ({ meta } = {}) => {
-	return {
-		banner() {
-			return "define(function (exports,require){";
-		},
-		footer() {
-			return `},${JSON.stringify(meta)})`;
-		},
-		resolveId(importee) {
-			if (isExternal(importee)) {
-				return {
-					id: importee,
-					external: true,
-				};
-			}
-		},
-	};
-};
+import path from "path";
+import { makeLegalIdentifier, createFilter } from "@rollup/pluginutils";
+import cssnano from "cssnano";
+import PQueue from "p-queue";
+import fs from "fs-extra";
+import postcss from "postcss";
+import { SourceMapConsumer, SourceMapGenerator } from "source-map";
+import resolveAsync$1, { sync } from "resolve";
+import { createHash } from "crypto";
+import { cosmiconfig } from "cosmiconfig";
+import valueParser from "postcss-value-parser";
+import { lookup } from "mime-types";
+import modulesValues from "postcss-modules-values";
+import localByDefault from "postcss-modules-local-by-default";
+import extractImports from "postcss-modules-extract-imports";
+import modulesScope from "postcss-modules-scope";
+import { extractICSS, replaceSymbols, replaceValueSymbols } from "icss-utils";
 
 const isAbsolutePath = (path) => /^(?:\/|(?:[A-Za-z]:)?[/\\|])/.test(path);
 const isRelativePath = (path) => /^\.?\.[/\\]/.test(path);
 function normalizePath(...paths) {
-	const f = path__default['default'].join(...paths).replace(/\\/g, "/");
+	const f = path.join(...paths).replace(/\\/g, "/");
 	if (/^\.[/\\]/.test(paths[0])) return `./${f}`;
 	return f;
 }
-const resolvePath = (...paths) => normalizePath(path__default['default'].resolve(...paths));
-const relativePath = (from, to) => normalizePath(path__default['default'].relative(from, to));
+const resolvePath = (...paths) => normalizePath(path.resolve(...paths));
+const relativePath = (from, to) => normalizePath(path.relative(from, to));
 const humanlizePath = (file) => relativePath(process.cwd(), file);
 
 const hashRe = /\[hash(?::(\d+))?]/;
@@ -102,10 +52,10 @@ async function getMap(code, id) {
 			: [];
 	if (uriMap) return Buffer.from(uriMap, "base64").toString();
 	if (!id) throw new Error("Extracted map detected, but no ID is provided");
-	const mapFileName = path__default['default'].resolve(path__default['default'].dirname(id), data);
-	const exists = await fs__default['default'].pathExists(mapFileName);
+	const mapFileName = path.resolve(path.dirname(id), data);
+	const exists = await fs.pathExists(mapFileName);
 	if (!exists) return;
-	return fs__default['default'].readFile(mapFileName, "utf8");
+	return fs.readFile(mapFileName, "utf8");
 }
 const stripMap = (code) => code.replace(mapBlockRe, "").replace(mapLineRe, "");
 
@@ -159,7 +109,7 @@ class MapModifier {
 
 	async toConsumer() {
 		if (!this.map) return this.map;
-		return new sourceMap.SourceMapConsumer(this.map);
+		return new SourceMapConsumer(this.map);
 	}
 
 	toCommentData() {
@@ -179,16 +129,16 @@ const mm = (map) => new MapModifier(map);
 
 var resolveAsync = async (id, options = {}) =>
 	new Promise((resolve, reject) => {
-		resolveAsync$1__default['default'](id, options, (err, res) =>
+		resolveAsync$1(id, options, (err, res) =>
 			err ? reject(err) : resolve(res)
 		);
 	});
 
-var hasher = (data) => crypto.createHash("sha256").update(data).digest("hex");
+var hasher = (data) => createHash("sha256").update(data).digest("hex");
 
 var safeId = (id, ...salt) => {
 	const hash = hasher([id, "0iOXBLSx", ...salt].join(":")).slice(0, 8);
-	return pluginutils.makeLegalIdentifier(`${id}_${hash}`);
+	return makeLegalIdentifier(`${id}_${hash}`);
 };
 
 /* eslint-disable @typescript-eslint/no-var-requires */
@@ -203,9 +153,9 @@ function loadModule(moduleId) {
 
 	try {
 		try {
-			loaded[moduleId] = require(resolveAsync$1.sync(moduleId, options));
+			loaded[moduleId] = require(sync(moduleId, options));
 		} catch {
-			loaded[moduleId] = require(resolveAsync$1.sync(`./${moduleId}`, options));
+			loaded[moduleId] = require(sync(`./${moduleId}`, options));
 		}
 	} catch {
 		loaded[moduleId] = null;
@@ -343,9 +293,9 @@ async function loadConfig(id, config) {
 			plugins: [],
 			options: {},
 		};
-	const { ext, dir, base } = path__default['default'].parse(id);
-	const searchPath = config.path ? path__default['default'].resolve(config.path) : dir;
-	const found = await cosmiconfig.cosmiconfig("postcss").search(searchPath);
+	const { ext, dir, base } = path.parse(id);
+	const searchPath = config.path ? path.resolve(config.path) : dir;
+	const found = await cosmiconfig("postcss").search(searchPath);
 	if (!found || found.isEmpty)
 		return {
 			plugins: [],
@@ -401,13 +351,13 @@ const resolve = async (url, basedir, extensions) => {
 
 	return {
 		from,
-		source: await fs__default['default'].readFile(from),
+		source: await fs.readFile(from),
 	};
 };
 
 const name = "styles-import";
 const extensionsDefault = [".css", ".pcss", ".postcss", ".sss"];
-const plugin = postcss__default['default'].plugin(name, (options = {}) => async (css, res) => {
+const plugin = postcss.plugin(name, (options = {}) => async (css, res) => {
 	var _css$source, _options$resolve, _options$alias, _options$extensions;
 
 	if (
@@ -434,7 +384,7 @@ const plugin = postcss__default['default'].plugin(name, (options = {}) => async 
 	delete opts.map;
 	const { file } = css.source.input;
 	const importList = [];
-	const basedir = path__default['default'].dirname(file);
+	const basedir = path.dirname(file);
 	css.walkAtRules(/^import$/i, (importRule) => {
 		// Top level only
 		if (importRule.parent.type !== "root") {
@@ -447,7 +397,7 @@ const plugin = postcss__default['default'].plugin(name, (options = {}) => async 
 			return;
 		}
 
-		const [urlNode] = valueParser__default['default'](importRule.params).nodes; // No URL detected
+		const [urlNode] = valueParser(importRule.params).nodes; // No URL detected
 
 		if (
 			!urlNode ||
@@ -480,7 +430,7 @@ const plugin = postcss__default['default'].plugin(name, (options = {}) => async 
 					: _urlNode$nodes$.type) === "string";
 			url = isString
 				? urlNode.nodes[0].value
-				: valueParser__default['default'].stringify(urlNode.nodes);
+				: valueParser.stringify(urlNode.nodes);
 		}
 
 		url = url.replace(/^\s+|\s+$/g, ""); // Resolve aliases
@@ -521,7 +471,7 @@ const plugin = postcss__default['default'].plugin(name, (options = {}) => async 
 				continue;
 			}
 
-			const imported = await postcss__default['default'](plugin(options)).process(source, {
+			const imported = await postcss(plugin(options)).process(source, {
 				...opts,
 				from,
 			});
@@ -555,17 +505,17 @@ const resolve$1 = async (url, basedir) => {
 
 	return {
 		from,
-		source: await fs__default['default'].readFile(from),
+		source: await fs.readFile(from),
 	};
 };
 
 var generateName = (placeholder, file, source) => {
-	const { dir, name, ext, base } = path__default['default'].parse(file);
+	const { dir, name, ext, base } = path.parse(file);
 	const hash = hasher(`${base}:${Buffer.from(source).toString()}`);
 	const match = hashRe.exec(placeholder);
 	const hashLen = match && Number.parseInt(match[1]);
 	return placeholder
-		.replace("[dir]", path__default['default'].basename(dir))
+		.replace("[dir]", path.basename(dir))
 		.replace("[name]", name)
 		.replace("[extname]", ext)
 		.replace(".[ext]", ext)
@@ -589,7 +539,7 @@ const walkUrls = (parsed, callback) => {
 					? void 0
 					: urlNode.type) === "string"
 					? urlNode.value
-					: valueParser__default['default'].stringify(nodes);
+					: valueParser.stringify(nodes);
 			callback(url.replace(/^\s+|\s+$/g, ""), urlNode);
 			return;
 		}
@@ -609,7 +559,7 @@ const walkUrls = (parsed, callback) => {
 							? void 0
 							: urlNode.type) === "string"
 							? urlNode.value
-							: valueParser__default['default'].stringify(nodes);
+							: valueParser.stringify(nodes);
 					callback(url.replace(/^\s+|\s+$/g, ""), urlNode);
 					continue;
 				}
@@ -619,7 +569,7 @@ const walkUrls = (parsed, callback) => {
 };
 
 var inlineFile = (file, source) => {
-	const mime = mimeTypes.lookup(file) || "application/octet-stream";
+	const mime = lookup(file) || "application/octet-stream";
 	const data = Buffer.from(source).toString("base64");
 	return `data:${mime};base64,${data}`;
 };
@@ -627,7 +577,7 @@ var inlineFile = (file, source) => {
 const name$1 = "styles-url";
 const placeholderHashDefault = "assets/[name]-[hash][extname]";
 const placeholderNoHashDefault = "assets/[name][extname]";
-const plugin$1 = postcss__default['default'].plugin(name$1, (options = {}) => async (css, res) => {
+const plugin$1 = postcss.plugin(name$1, (options = {}) => async (css, res) => {
 	var _css$source,
 		_options$inline,
 		_options$publicPath,
@@ -683,7 +633,7 @@ const plugin$1 = postcss__default['default'].plugin(name$1, (options = {}) => as
 			? void 0
 			: _css$source$input$map.text
 	)
-		.resolve(path__default['default'].dirname(file))
+		.resolve(path.dirname(file))
 		.toConsumer();
 	const urlList = [];
 	const imported = res.messages
@@ -691,7 +641,7 @@ const plugin$1 = postcss__default['default'].plugin(name$1, (options = {}) => as
 		.map((msg) => msg.file);
 	css.walkDecls((decl) => {
 		if (!isDeclWithUrl(decl)) return;
-		const parsed = valueParser__default['default'](decl.value);
+		const parsed = valueParser(decl.value);
 		walkUrls(parsed, (url, node) => {
 			var _decl$source, _decl$source2;
 
@@ -726,7 +676,7 @@ const plugin$1 = postcss__default['default'].plugin(name$1, (options = {}) => as
 					: _decl$source.input.file) &&
 				imported.includes(decl.source.input.file)
 			)
-				basedirs.add(path__default['default'].dirname(decl.source.input.file)); // Use SourceMap
+				basedirs.add(path.dirname(decl.source.input.file)); // Use SourceMap
 
 			if (
 				(_decl$source2 = decl.source) === null ||
@@ -742,11 +692,11 @@ const plugin$1 = postcss__default['default'].plugin(name$1, (options = {}) => as
 				const basedir =
 					(realPos === null || realPos === void 0
 						? void 0
-						: realPos.source) && path__default['default'].dirname(realPos.source);
-				if (basedir) basedirs.add(path__default['default'].normalize(basedir));
+						: realPos.source) && path.dirname(realPos.source);
+				if (basedir) basedirs.add(path.normalize(basedir));
 			} // Use current file
 
-			basedirs.add(path__default['default'].dirname(file));
+			basedirs.add(path.dirname(file));
 			urlList.push({
 				node,
 				url,
@@ -820,7 +770,7 @@ const plugin$1 = postcss__default['default'].plugin(name$1, (options = {}) => as
 			node.value =
 				publicPath +
 				(/[/\\]$/.test(publicPath) ? "" : "/") +
-				path__default['default'].basename(to);
+				path.basename(to);
 			to = normalizePath(assetDir, to);
 			res.messages.push({
 				plugin: name$1,
@@ -839,13 +789,13 @@ var generateScopedNameDefault = (placeholder = "[name]_[local]__[hash:8]") => (
 	file,
 	css
 ) => {
-	const { dir, name, base } = path__default['default'].parse(file);
+	const { dir, name, base } = path.parse(file);
 	const hash = hasher(`${base}:${css}`);
 	const match = hashRe.exec(placeholder);
 	const hashLen = match && Number.parseInt(match[1]);
-	return pluginutils.makeLegalIdentifier(
+	return makeLegalIdentifier(
 		placeholder
-			.replace("[dir]", path__default['default'].basename(dir))
+			.replace("[dir]", path.basename(dir))
 			.replace("[name]", name)
 			.replace("[local]", local)
 			.replace(hashRe, hashLen ? hash.slice(0, hashLen) : hash)
@@ -862,14 +812,14 @@ var postcssModules = (options) => {
 				: generateScopedNameDefault(options.generateScopedName),
 	};
 	return [
-		modulesValues__default['default'](),
-		localByDefault__default['default']({
+		modulesValues(),
+		localByDefault({
 			mode: opts.mode,
 		}),
-		extractImports__default['default']({
+		extractImports({
 			failOnWrongOrder: opts.failOnWrongOrder,
 		}),
-		modulesScope__default['default']({
+		modulesScope({
 			exportGlobals: opts.exportGlobals,
 			generateScopedName: opts.generateScopedName,
 		}),
@@ -879,7 +829,7 @@ var postcssModules = (options) => {
 const load = async (url, file, extensions, processor, opts) => {
 	let from;
 	const options = {
-		basedir: path__default['default'].dirname(file),
+		basedir: path.dirname(file),
 		extensions,
 	};
 
@@ -889,7 +839,7 @@ const load = async (url, file, extensions, processor, opts) => {
 		from = await resolveAsync(`./${url}`, options);
 	}
 
-	const source = await fs__default['default'].readFile(from);
+	const source = await fs.readFile(from);
 	const { messages } = await processor.process(source, { ...opts, from });
 	const exports = {};
 
@@ -917,7 +867,7 @@ async function resolve$2(icssImports, load, file, extensions, processor, opts) {
 
 const name$2 = "styles-icss";
 const extensionsDefault$1 = [".css", ".pcss", ".postcss", ".sss"];
-const plugin$2 = postcss__default['default'].plugin(name$2, (options = {}) => async (css, res) => {
+const plugin$2 = postcss.plugin(name$2, (options = {}) => async (css, res) => {
 	var _css$source, _options$load, _options$extensions;
 
 	if (
@@ -938,7 +888,7 @@ const plugin$2 = postcss__default['default'].plugin(name$2, (options = {}) => as
 			: extensionsDefault$1;
 	const opts = { ...res.opts };
 	delete opts.map;
-	const { icssImports, icssExports } = icssUtils.extractICSS(css);
+	const { icssImports, icssExports } = extractICSS(css);
 	const imports = await resolve$2(
 		icssImports,
 		load$1,
@@ -947,14 +897,14 @@ const plugin$2 = postcss__default['default'].plugin(name$2, (options = {}) => as
 		res.processor,
 		opts
 	);
-	icssUtils.replaceSymbols(css, imports);
+	replaceSymbols(css, imports);
 
 	for (const [k, v] of Object.entries(icssExports)) {
 		res.messages.push({
 			plugin: name$2,
 			type: "icss",
 			export: {
-				[k]: icssUtils.replaceValueSymbols(v, imports),
+				[k]: replaceValueSymbols(v, imports),
 			},
 		});
 	}
@@ -966,14 +916,14 @@ function noop() {
 	/* noop */
 }
 
-var postcssNoop = postcss__default['default'].plugin(name$3, () => noop);
+var postcssNoop = postcss.plugin(name$3, () => noop);
 
 let injectorId;
 const cssVarName = "css";
 const reservedWords = [cssVarName];
 
 function getClassNameDefault(name) {
-	const id = pluginutils.makeLegalIdentifier(name);
+	const id = makeLegalIdentifier(name);
 	if (reservedWords.includes(id)) return `_${id}`;
 	return id;
 }
@@ -1009,7 +959,7 @@ const loader = {
 				inline: false,
 				annotation: false,
 				sourcesContent: this.sourceMap ? this.sourceMap.content : true,
-				prev: mm(map).relative(path__default['default'].dirname(this.id)).toObject(),
+				prev: mm(map).relative(path.dirname(this.id)).toObject(),
 			},
 		};
 		delete postcssOpts.plugins;
@@ -1047,13 +997,13 @@ const loader = {
 
 		if (options.minimize)
 			plugins.push(
-				cssnano__default['default'](
+				cssnano(
 					typeof options.minimize === "object" ? options.minimize : {}
 				)
 			); // Avoid PostCSS warning
 
 		if (plugins.length === 0) plugins.push(postcssNoop);
-		const res = await postcss__default['default'](plugins).process(code, postcssOpts);
+		const res = await postcss(plugins).process(code, postcssOpts);
 
 		for (const msg of res.messages)
 			switch (msg.type) {
@@ -1082,7 +1032,7 @@ const loader = {
 				? void 0
 				: _res$map.toJSON()
 		)
-			.resolve(path__default['default'].dirname(postcssOpts.to))
+			.resolve(path.dirname(postcssOpts.to))
 			.toString();
 		if (!options.extract && this.sourceMap)
 			res.css += mm(map)
@@ -1095,7 +1045,7 @@ const loader = {
 				map,
 			};
 
-		const saferId = (id) => safeId(id, path__default['default'].basename(this.id));
+		const saferId = (id) => safeId(id, path.basename(this.id));
 
 		const modulesVarName = saferId("modules");
 		const output = [
@@ -1143,7 +1093,7 @@ const loader = {
 
 				if (!injectorId) {
 					injectorId = await resolveAsync("./inject-css", {
-						basedir: path__default['default'].join(__dirname, "runtime"),
+						basedir: path.join(__dirname, "runtime"),
 					})
 						.then(normalizePath)
 						.then(JSON.stringify);
@@ -1191,7 +1141,7 @@ const loader = {
 		};`;
 		output.push(defaultExport);
 
-		if (options.dts && (await fs__default['default'].pathExists(this.id))) {
+		if (options.dts && (await fs.pathExists(this.id))) {
 			if (supportModules)
 				dts.push(
 					`interface ModulesExports ${JSON.stringify(
@@ -1204,7 +1154,7 @@ const loader = {
 					`declare const ${modulesVarName}: ModulesExports;`
 				);
 			dts.push(defaultExport);
-			await fs__default['default'].writeFile(
+			await fs.writeFile(
 				`${this.id}.d.ts`,
 				dts.filter(Boolean).join("\n")
 			);
@@ -1259,7 +1209,7 @@ function loadSass(impl) {
 
 const isModule = (url) => /^~[\d@A-Za-z]/.test(url);
 function getUrlOfPartial(url) {
-	const { dir, base } = path__default['default'].parse(url);
+	const { dir, base } = path.parse(url);
 	return dir ? `${normalizePath(dir)}/_${base}` : `_${base}`;
 }
 function normalizeUrl(url) {
@@ -1281,7 +1231,7 @@ const importer = (url, importer, done) => {
 	const moduleUrl = normalizeUrl(url);
 	const partialUrl = getUrlOfPartial(moduleUrl);
 	const options = {
-		basedir: path__default['default'].dirname(importer),
+		basedir: path.dirname(importer),
 		extensions,
 	}; // Give precedence to importing a partial
 
@@ -1301,15 +1251,15 @@ const importerSync = (url, importer) => {
 	const moduleUrl = normalizeUrl(url);
 	const partialUrl = getUrlOfPartial(moduleUrl);
 	const options = {
-		basedir: path__default['default'].dirname(importer),
+		basedir: path.dirname(importer),
 		extensions,
 	}; // Give precedence to importing a partial
 
 	try {
 		try {
-			return finalize(resolveAsync$1.sync(partialUrl, options));
+			return finalize(sync(partialUrl, options));
 		} catch {
-			return finalize(resolveAsync$1.sync(moduleUrl, options));
+			return finalize(sync(moduleUrl, options));
 		}
 	} catch {
 		return null;
@@ -1398,7 +1348,7 @@ const loader$3 = {
 			throw new Error(
 				"You need to install `stylus` package in order to process Stylus files"
 			);
-		const basePath = normalizePath(path__default['default'].dirname(this.id));
+		const basePath = normalizePath(path.dirname(this.id));
 		const paths = [`${basePath}/node_modules`, basePath];
 		if (options.paths) paths.push(...options.paths);
 		const style = stylus(code, options)
@@ -1430,9 +1380,9 @@ const loader$3 = {
 			style.sourcemap.sourcesContent = await Promise.all(
 				style.sourcemap.sources.map(async (source) => {
 					const file = normalizePath(basePath, source);
-					const exists = await fs__default['default'].pathExists(file);
+					const exists = await fs.pathExists(file);
 					if (!exists) return null;
-					return fs__default['default'].readFile(file, "utf8");
+					return fs.readFile(file, "utf8");
 				})
 			);
 		}
@@ -1475,7 +1425,7 @@ const getStylesFileManager = (less) =>
 
 			return {
 				filename: id,
-				contents: await fs__default['default'].readFile(id, "utf8"),
+				contents: await fs.readFile(id, "utf8"),
 			};
 		}
 	})();
@@ -1507,7 +1457,7 @@ const loader$4 = {
 			filename: this.id,
 			sourceMap: {
 				outputSourceFiles: true,
-				sourceMapBasepath: path__default['default'].dirname(this.id),
+				sourceMapBasepath: path.dirname(this.id),
 			},
 		});
 		const deps = res.imports;
@@ -1536,7 +1486,7 @@ const threadPoolSize = process.env.UV_THREADPOOL_SIZE
 	? Number.parseInt(process.env.UV_THREADPOOL_SIZE)
 	: 4; // default `libuv` threadpool size
 
-const workQueue = new PQueue__default['default']({
+const workQueue = new PQueue({
 	concurrency: threadPoolSize - 1,
 });
 class Loaders {
@@ -1589,7 +1539,7 @@ class Loaders {
 }
 
 async function concat(extracted) {
-	const sm = new sourceMap.SourceMapGenerator({
+	const sm = new SourceMapGenerator({
 		file: "",
 	});
 	const content = [];
@@ -1640,7 +1590,7 @@ var index = (options = {}) => {
 		_options$autoModules,
 		_options$extensions;
 
-	const isIncluded = pluginutils.createFilter(options.include, options.exclude);
+	const isIncluded = createFilter(options.include, options.exclude);
 	const sourceMap = inferSourceMapOption(options.sourceMap);
 	const loaderOpts = {
 		...inferModeOption(options.mode),
@@ -1782,7 +1732,7 @@ var index = (options = {}) => {
 				.filter((e) => ids.includes(e.id))
 				.sort((a, b) => ids.lastIndexOf(a.id) - ids.lastIndexOf(b.id))
 				.map((e) => {
-					const { base, dir } = path__default['default'].parse(e.id);
+					const { base, dir } = path.parse(e.id);
 					return {
 						...e,
 						id: base,
@@ -1803,7 +1753,7 @@ var index = (options = {}) => {
 			const dir =
 				(_opts$dir = opts.dir) !== null && _opts$dir !== void 0
 					? _opts$dir
-					: path__default['default'].dirname(opts.file);
+					: path.dirname(opts.file);
 			const chunks = Object.values(bundle).filter(
 				(c) => c.type === "chunk"
 			);
@@ -1845,16 +1795,16 @@ var index = (options = {}) => {
 					name: fileName,
 					css: res.css,
 					map: mm(res.map)
-						.relative(path__default['default'].dirname(path__default['default'].resolve(dir, fileName)))
+						.relative(path.dirname(path.resolve(dir, fileName)))
 						.toString(),
 				};
 			};
 
 			const getName = (chunk) => {
-				if (opts.file) return path__default['default'].parse(opts.file).name;
+				if (opts.file) return path.parse(opts.file).name;
 
 				if (preserveModules) {
-					const { dir, name } = path__default['default'].parse(chunk.fileName);
+					const { dir, name } = path.parse(chunk.fileName);
 					return dir ? `${dir}/${name}` : name;
 				}
 
@@ -1947,7 +1897,7 @@ var index = (options = {}) => {
 						sourcesContent: sourceMap.content,
 						prev: res.map,
 					};
-					const resMin = await cssnano__default['default'].process(res.css, cssNanoOpts);
+					const resMin = await cssnano.process(res.css, cssNanoOpts);
 					res.css = resMin.css;
 					res.map =
 						(_resMin$map = resMin.map) === null ||
@@ -1965,12 +1915,12 @@ var index = (options = {}) => {
 				if (res.map && sourceMap) {
 					const fileName = this.getFileName(cssFileId);
 					const assetDir = opts.assetFileNames
-						? normalizePath(path__default['default'].dirname(opts.assetFileNames))
+						? normalizePath(path.dirname(opts.assetFileNames))
 						: "assets"; // Default for Rollup v2
 
 					const map = mm(res.map)
 						.modify((m) => {
-							m.file = path__default['default'].basename(fileName);
+							m.file = path.basename(fileName);
 						})
 						.modifySources((s) => {
 							// Compensate for possible nesting depending on `assetFileNames` value
@@ -1992,7 +1942,7 @@ var index = (options = {}) => {
 							fileName: `${fileName}.map`,
 							source: map.toString(),
 						});
-						const mapFileName = path__default['default'].basename(
+						const mapFileName = path.basename(
 							this.getFileName(mapFileId)
 						);
 						bundle[fileName].source += map.toCommentFile(
@@ -2006,111 +1956,4 @@ var index = (options = {}) => {
 	return plugin;
 };
 
-const babelOptions = {
-	babelHelpers: "bundled",
-	presets: ["@babel/preset-env", "@babel/preset-react"],
-};
-
-var plugins = [
-	[
-		index({
-			mode: "extract",
-			// ... or with relative to output dir/output file's basedir (but not outside of it)
-			// less: ["less"],
-		}),
-		pluginBabel.babel(babelOptions),
-	],
-	[rollupPluginUglify.uglify()],
-];
-
-const args = yargs.option("", {}).argv;
-
-const { _ } = args;
-const package_location = _.length > 0 ? _[0] : ".";
-const cwd = process.cwd();
-start();
-
-async function start() {
-	const { location } = getMeta();
-	const module_location = path.dirname(location);
-	const { pkg, entry } = await resolveModule(module_location);
-
-	const output_option = {
-		exports: "named",
-		file: path.join(module_location, `live.prod/${pkg.name}.js`),
-		format: "cjs",
-		assetFileNames: `${pkg.name}.css`,
-	};
-
-	const [plugins_before, plugins_after] = plugins;
-
-	const bundle = await rollup.rollup({
-		input: entry,
-		plugins: [
-			...plugins_before,
-			previewTransipler({ meta: pkg }),
-			...plugins_after,
-		],
-	});
-
-	await bundle.write(output_option);
-}
-async function resolveModule(start_location) {
-	return new Promise((rv, rj) => {
-		const abs_path = path.resolve(cwd, start_location);
-		resolveAsync$1__default['default'](abs_path, (err, entry, pkg) => {
-			if (err) {
-				rj(err);
-			} else {
-				rv({ pkg, entry });
-			}
-		});
-	});
-}
-
-function getMeta() {
-	if (package_location) {
-		const abs_path = path.resolve(cwd, package_location);
-		const meta_file_location = findMetaLocation(abs_path);
-
-		if (meta_file_location) {
-			const meta_buffer = fs$1.readFileSync(meta_file_location);
-			const meta = JSON.parse(meta_buffer);
-			return { meta, location: meta_file_location };
-		}
-	} else {
-		console.error("Cannot access the package location.");
-	}
-}
-
-function findMetaLocation(start_location) {
-	const find = (path$1) => {
-		let is_found = false;
-		const will_pkg_location = path.resolve(path$1, "package.json");
-		const is_existed = fs$1.existsSync(will_pkg_location);
-
-		if (is_existed) {
-			const stats = fs$1.statSync(will_pkg_location);
-			const is_file = stats.isFile();
-			if (is_file) {
-				is_found = true;
-			}
-		}
-
-		if (is_found) {
-			return will_pkg_location;
-		} else {
-			const parent_dir = parentDir(path$1);
-			if (parent_dir !== path$1) {
-				return findMetaLocation(parent_dir);
-			} else {
-				console.error("Cannot found meta file.");
-			}
-		}
-	};
-	return find(start_location);
-}
-
-function parentDir(path$1) {
-	return path.resolve(path$1, "../");
-}
+export default index;

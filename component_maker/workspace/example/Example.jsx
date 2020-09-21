@@ -1,6 +1,4 @@
 import React from "react";
-// import "./Example.css";
-// import "./A.css";
 import "./CCC.less";
 
 export default ({ age = 13 }) => {
