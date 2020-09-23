@@ -19,7 +19,6 @@ export default () => {
 		const task = async () => {
 			await load("workspace/example/live.prod/Example.js");
 			const component = getComponent("Example");
-			// console.log(component, "@@@");
 			setComponent(() => component);
 		};
 

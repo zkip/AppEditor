@@ -50,7 +50,7 @@ function isExternal(filepath) {
 var previewTransipler = ({ meta } = {}) => {
 	return {
 		banner() {
-			return "define(function (exports,require){";
+			return "define({}.__MUSTBEREPLACED,function (exports,require){";
 		},
 		footer() {
 			return `},${JSON.stringify(meta)})`;

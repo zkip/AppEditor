@@ -11,7 +11,7 @@ function isExternal(filepath) {
 export default ({ meta } = {}) => {
 	return {
 		banner() {
-			return "define(function (exports,require){";
+			return "define({}.__MUSTBEREPLACED,function (exports,require){";
 		},
 		footer() {
 			return `},${JSON.stringify(meta)})`;

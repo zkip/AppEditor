@@ -1,3 +1,3 @@
 export function entries(obj) {
-	return Object.entries(obj).map;
+	return (fn) => Object.entries(obj).map(fn);
 }

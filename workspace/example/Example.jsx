@@ -8,3 +8,7 @@ export default ({ age = 13 }) => {
 		</div>
 	);
 };
+
+export const People = () => {
+	return <div className="People">People</div>;
+};
