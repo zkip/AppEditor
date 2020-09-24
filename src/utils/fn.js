@@ -6,3 +6,5 @@ export const listen = (name, target = window, options = {}) => (fn) => {
 };
 
 export const noop = () => {};
+
+export const fallback = (default_value) => (v = default_value) => v;

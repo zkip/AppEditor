@@ -1,13 +1,13 @@
 import {
 	DefaultComponent,
-	getComponent,
+	dropModule,
+	getExport,
+	getExports,
 	load,
 	setup,
 } from "@/bootstrap/module";
 import { useEffect, useState } from "react";
 import ComponentManager from "./ComponentManager";
-
-const loadComponent = async () => {};
 
 export default () => {
 	const [Component, setComponent] = useState(() => DefaultComponent);
@@ -17,9 +17,12 @@ export default () => {
 
 	useEffect(() => {
 		const task = async () => {
-			await load("workspace/example/live.prod/Example.js");
-			const component = getComponent("Example");
+			await load("workspace/example");
+
+			const component = getExport("Example");
 			setComponent(() => component);
+
+			const [path, module] = getExports("workspace/example");
 		};
 
 		task();

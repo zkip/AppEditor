@@ -22,11 +22,12 @@ async function start() {
 	const module_location = dirname(location);
 	const { pkg, entry } = await resolveModule(module_location);
 
+	const default_entry_identity = "index";
 	const output_option = {
 		exports: "named",
-		file: join(module_location, `live.prod/${pkg.name}.js`),
+		file: join(module_location, `live.prod/${default_entry_identity}.js`),
 		format: "cjs",
-		assetFileNames: `${pkg.name}.css`,
+		assetFileNames: `${default_entry_identity}.css`,
 	};
 
 	const [plugins_before, plugins_after] = plugins;

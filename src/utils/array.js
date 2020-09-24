@@ -15,4 +15,4 @@ export const inBound = (min, max) => (v) => Math.max(min, Math.min(v, max));
 
 export const inArrayBound = ({ length }) => inBound(0, length - 1);
 
-export const firstInSet = (set) => set.values().next().value;
+export const firstInIter = (set) => set.entries().next().value;
