@@ -1,0 +1,12 @@
+.Toolbar {
+	border: 1px solid rebeccapurple;
+	display: flex;
+}
+
+.add {
+	border: 1px solid yellowgreen;
+	display: grid;
+	place-items: center;
+	width: 24px;
+	height: 24px;
+}
