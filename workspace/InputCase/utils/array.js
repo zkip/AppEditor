@@ -1,9 +1,6 @@
-import { noop } from "./fn";
-
 // Array Generator
-export const repeat = (count) => {
-	return (fn = (v) => v) =>
-		Array.prototype.map.call(" ".repeat(count), (_, idx) => fn(idx));
+export const repeat = (count, fn) => {
+	return Array.prototype.map.call(" ".repeat(count), (_, idx) => fn(idx));
 };
 
 export const joinBySpace = (...cls) => cls.filter(Boolean).join(" ");

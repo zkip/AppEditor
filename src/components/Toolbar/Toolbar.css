@@ -1,12 +1,15 @@
 .Toolbar {
 	border: 1px solid rebeccapurple;
-	display: flex;
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: 24px;
+	grid-auto-rows: 24px;
+	place-items: stretch;
+	gap: 4px;
 }
 
-.add {
+.Toolbar > * {
 	border: 1px solid yellowgreen;
 	display: grid;
 	place-items: center;
-	width: 24px;
-	height: 24px;
 }

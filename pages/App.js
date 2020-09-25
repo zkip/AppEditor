@@ -6,26 +6,39 @@ import {
 	load,
 	setup,
 } from "@/bootstrap/module";
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
+import { findDOMNode } from "react-dom";
 import Toolbar from "@/components/Toolbar";
 import { listen } from "public/workspace/Flex/utils/fn";
+import { joinBySpace, repeat } from "@/utils/array";
 
 class Config {
 	Component = "";
 	children = [];
 	props = {};
+	ref = { current: null };
 	constructor(props) {
 		Object.assign(this, props);
 	}
 }
 
-const Renderer = ({ config }) => (
-	<config.Component {...config.props}>
-		{config.children.map((config) => (
-			<Renderer config={config} />
-		))}
-	</config.Component>
-);
+const Fixture = forwardRef(({ children, className, ...props }, ref) => (
+	<div ref={ref} className={joinBySpace("fixture", className)}>
+		{children}
+	</div>
+));
+
+const Renderer = ({ config }) => {
+	return (
+		<Fixture ref={config.ref}>
+			<config.Component {...config.props}>
+				{config.children.map((config) => (
+					<Renderer config={config} />
+				))}
+			</config.Component>
+		</Fixture>
+	);
+};
 
 export default () => {
 	const [Component, setComponent] = useState(() => DefaultComponent);
@@ -39,14 +52,14 @@ export default () => {
 
 	useEffect(() => {
 		const task = async () => {
-			await load("workspace/Box");
+			await load("workspace/InputCase");
 
-			const component = getExport("Box");
-			// setComponent(() => component);
+			const component = getExport("InputCase");
+			setComponent(() => component);
 
-			const newLayout = new Config({ Component: component });
+			// const newLayout = new Config({ Component: component });
 
-			setLayout(newLayout);
+			// setLayout(newLayout);
 
 			// setTimeout(() => {
 			// 	setProps({
@@ -64,34 +77,25 @@ export default () => {
 	}, []);
 
 	useEffect(() => {
-		return listen("mousedown")(() => {
-			const component = getExport("Box");
-			const newConfig = new Config({
-				Component: layout.Component,
-				children: layout.children,
-				props: layout.props,
-			});
-
-			if (Math.random() > 0.45) {
-				newConfig.children.push(
-					new Config({
-						Component: component,
-						props: { background: getRandomColor() },
-					})
-				);
-			} else {
-				newConfig.children.pop();
+		return listen("keydown", undefined, { passive: false })((e) => {
+			const { key } = e;
+			if (key === " ") {
+				e.preventDefault();
+				const component = getExport("Box");
+				const config = genRandomConfig(component);
+				setLayout(config);
+				console.log(config);
 			}
-			setLayout(newConfig);
 		});
-	}, [layout]);
+	}, [setLayout]);
 
 	return (
 		<div>
-			<Toolbar />
+			<Component />
+			{/* <Toolbar />
 			<div>
 				<Renderer config={layout} />
-			</div>
+			</div> */}
 		</div>
 	);
 };
@@ -103,4 +107,25 @@ function getRandomColor() {
 		color += letters[Math.floor(Math.random() * 16)];
 	}
 	return color;
+}
+
+function genRandomConfig(component) {
+	const step = 4;
+	const genProps = () => {
+		return {
+			width: (((Math.random() * 200) / step + 20 / step) >> 0) * step,
+			height: (((Math.random() * 200) / step + 20 / step) >> 0) * step,
+			background: getRandomColor(),
+		};
+	};
+	const gen = (props, hierarchy = 0) => {
+		const config = new Config({ Component: component, props });
+		if (hierarchy < 5) {
+			config.children = repeat((Math.random() * 5) >> 0)(() =>
+				gen(genProps(), hierarchy + 1)
+			);
+		}
+		return config;
+	};
+	return gen(genProps());
 }
