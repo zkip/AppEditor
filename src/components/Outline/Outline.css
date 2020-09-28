@@ -1,3 +1,16 @@
 .Outline {
 	border: 1px solid rebeccapurple;
 }
+
+.Outline .node {
+	border: 1px solid rosybrown;
+	margin: 15px;
+	padding: 10px;
+}
+.Outline .node > * {
+	margin: 20px;
+}
+
+.Outline .node .children {
+	padding: 5px;
+}
