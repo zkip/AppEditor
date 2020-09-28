@@ -20,6 +20,8 @@
 		"parse-url": "^5.0.2",
 		"react": "^16.13.1",
 		"react-dom": "^16.13.1",
+		"react-redux": "^7.2.1",
+		"redux": "^4.0.5",
 		"yarn": "^1.22.5"
 	},
 	"peerDependencies": {
