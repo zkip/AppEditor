@@ -147,20 +147,19 @@ export default () => {
 
 	const outline_ref = useRef();
 
-	useEffect(() => {
-		console.log("@@@@");
-		return listen("mousedown")(({ path, clientX, clientY }) => {
-			const { payload, parentPayload } = getNodePayload(path);
-			if (payload) {
-				setActivePayload(payload);
-				if (payload.dom) {
-					if (!actived_payload.raw.children) {
-						actived_payload.raw.children = [];
-					}
-
+	useEffect(
+		() => {
+			console.log("@@@@");
+			return listen("mousedown")(({ path, clientX, clientY }) => {
+				const { payload, parentPayload } = getNodePayload(path);
+				console.log(parentPayload, "@@@@@@@@s");
+				if (payload) {
 					const { dom } = payload;
 					const bound = getDOMBound(dom.children[0]);
-					const node_self_payload = { ...payload.raw, children: [] };
+					const node_self_payload = {
+						...payload.raw,
+						children: [],
+					};
 
 					const ix = clientX,
 						iy = clientY;
@@ -201,23 +200,30 @@ export default () => {
 							const absolute_index =
 								(clientY - outline_bound.y - local_offset) /
 								lineHeight;
-							console.log(local_offset, absolute_index);
-							const [_payload] = livePayloadChildren.splice(
-								init_index,
-								1
+
+							// console.log(local_offset, absolute_index);
+
+							const live_payload =
+								livePayloadChildren[init_index - 1];
+
+							live_payload.index = absolute_index;
+
+							// const [_payload] = livePayloadChildren.splice(
+							// 	init_index,
+							// 	1
+							// );
+							// _payload.index = absolute_index;
+							// livePayloadChildren.splice(
+							// 	absolute_index,
+							// 	0,
+							// 	_payload
+							// );
+
+							console.log(
+								livePayloadChildren,
+								"----",
+								absolute_index
 							);
-							// livePayloadChildren.splice(
-							// 	init_index - 1,
-							// 	0,
-							// 	_payload
-							// );
-							// livePayloadChildren.splice(init_index, 0, _payload);
-							// console.log(_payload, "--");
-							// livePayloadChildren.splice(
-							// 	(absolute_index >> 0) - 1,
-							// 	0,
-							// 	_payload
-							// );
 
 							const dx = clientX - ix,
 								dy = clientY - iy;
@@ -250,22 +256,22 @@ export default () => {
 					);
 
 					const clean_up = listen("mouseup")(() => {
-						parentPayload.children = parentPayload.raw.children;
+						// parentPayload.children = parentPayload.raw.children;
 						clean_move();
 						clean_up();
 						setDragComponent(() => () => null);
 					});
 				}
-			} else {
-			}
-		});
-	}, [
-		actived_payload.dom,
-		ins,
-		setIns,
-		thumbDraggerProps,
-		setThumbDraggerProps,
-	]);
+			});
+		},
+		[
+			// actived_payload.dom,
+			// ins,
+			// setIns,
+			// thumbDraggerProps,
+			// setThumbDraggerProps,
+		]
+	);
 	return (
 		<div>
 			<div className="DragLayer">

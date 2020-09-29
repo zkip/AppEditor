@@ -24,7 +24,7 @@ const Node = ({ data, top_payload }) => {
 		node_map[id] = payload;
 		dom_payload_map.set(top_node.current, payload);
 		return () => {
-			delete dom_payload_map.delete(top_node.current);
+			dom_payload_map.delete(top_node.current);
 			delete node_map[id];
 		};
 	}, [top_node.current, data]);
@@ -35,7 +35,7 @@ const Node = ({ data, top_payload }) => {
 			</div>
 			{children.length > 0 && (
 				<div className="children">
-					{children.sort(indexWeight).map((data) => (
+					{children.map((data) => (
 						<Node
 							key={data.id}
 							data={data}
