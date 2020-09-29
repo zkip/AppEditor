@@ -1,5 +1,5 @@
 import { joinBySpace } from "@/utils/array";
-import { useRef, useEffect, forwardRef } from "react";
+import { useRef, useEffect } from "react";
 import "./Outline.css";
 
 export const node_map = {};
@@ -9,7 +9,7 @@ const indexWeight = (a, b) => {
 	return a.index - b.index;
 };
 
-const Node = ({ data, top_payload }) => {
+const Node = ({ data }) => {
 	const { name = "", id, level, children = [] } = data;
 	const top_node = useRef();
 	useEffect(() => {
@@ -19,7 +19,6 @@ const Node = ({ data, top_payload }) => {
 			children,
 			dom: top_node.current,
 			raw: data,
-			top: top_payload,
 		};
 		node_map[id] = payload;
 		dom_payload_map.set(top_node.current, payload);
@@ -36,11 +35,7 @@ const Node = ({ data, top_payload }) => {
 			{children.length > 0 && (
 				<div className="children">
 					{children.sort(indexWeight).map((data) => (
-						<Node
-							key={data.id}
-							data={data}
-							top_payload={top_payload}
-						/>
+						<Node key={data.id} data={data} />
 					))}
 				</div>
 			)}
@@ -48,14 +43,17 @@ const Node = ({ data, top_payload }) => {
 	);
 };
 
-export default forwardRef(
-	({ data = { name: "", children: [] }, className, style, ...rest }, ref) => {
-		const cls = joinBySpace(className, "Outline");
+export default ({
+	data = { name: "", children: [] },
+	className,
+	style,
+	...rest
+}) => {
+	const cls = joinBySpace(className, "Outline");
 
-		return (
-			<div className={cls} ref={ref}>
-				<Node data={data} top_payload={data} />
-			</div>
-		);
-	}
-);
+	return (
+		<div className={cls}>
+			<Node data={data} />
+		</div>
+	);
+};

@@ -6,3 +6,15 @@ body {
 	border: 1px solid rebeccapurple;
 	display: grid;
 }
+
+.thumb {
+	position: absolute;
+}
+
+.thumb > * {
+	pointer-events: none;
+	margin: 0;
+}
+.DragLayer {
+	pointer-events: none;
+}

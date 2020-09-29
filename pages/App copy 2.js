@@ -2,7 +2,7 @@ import Outline from "@/components/Outline";
 import { node_map, dom_payload_map } from "@/components/Outline";
 import { listen } from "@/utils/fn";
 import { inBound } from "public/workspace/Box/utils/array";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 const instances = {
 	id: "001",
@@ -18,11 +18,6 @@ const instances = {
 			children: [
 				{ id: "003", name: "Tee", index: 1, level: 2 },
 				{ id: "005", name: "Juice", index: 2, level: 2 },
-				{ id: "008", name: "Alice", index: 3, level: 2 },
-				{ id: "007", name: "Bob", index: 4, level: 2 },
-				{ id: "090", name: "Jip", index: 5, level: 2 },
-				{ id: "022", name: "Thor", index: 6, level: 2 },
-				{ id: "055", name: "Iss", index: 7, level: 2 },
 				{
 					id: "004",
 					name: "Hufed",
@@ -124,12 +119,6 @@ const ThumbDragger = ({
 	);
 };
 
-function getOutlineBound(payload) {
-	const { top } = payload;
-	const { dom } = node_map[top.id];
-	return dom.getBoundingClientRect();
-}
-
 const indent = 20;
 const lineHeight = 20;
 
@@ -145,10 +134,7 @@ export default () => {
 	const [DragComponent, setDragComponent] = useState(() => ThumbDragger);
 	const [thumbDraggerProps, setThumbDraggerProps] = useState({});
 
-	const outline_ref = useRef();
-
 	useEffect(() => {
-		console.log("@@@@");
 		return listen("mousedown")(({ path, clientX, clientY }) => {
 			const { payload, parentPayload } = getNodePayload(path);
 			if (payload) {
@@ -179,13 +165,12 @@ export default () => {
 
 					let created = false;
 
-					const outline_bound = outline_ref.current.getBoundingClientRect();
-
 					const clean_move = listen("mousemove")(
 						({ path, clientX, clientY }) => {
 							const { payload } = getNodePayload(path);
 
 							const livePayloadChildren = parentPayloadChildren.slice();
+							livePayloadChildren.splice(init_index, 1);
 
 							if (!created) {
 								created = true;
@@ -193,31 +178,12 @@ export default () => {
 							}
 
 							if (payload) {
+								console.log(
+									"---------",
+									payload.dom,
+									payload.name
+								);
 							}
-
-							const local_offset =
-								(iy - outline_bound.y) % lineHeight;
-
-							const absolute_index =
-								(clientY - outline_bound.y - local_offset) /
-								lineHeight;
-							console.log(local_offset, absolute_index);
-							const [_payload] = livePayloadChildren.splice(
-								init_index,
-								1
-							);
-							// livePayloadChildren.splice(
-							// 	init_index - 1,
-							// 	0,
-							// 	_payload
-							// );
-							// livePayloadChildren.splice(init_index, 0, _payload);
-							// console.log(_payload, "--");
-							// livePayloadChildren.splice(
-							// 	(absolute_index >> 0) - 1,
-							// 	0,
-							// 	_payload
-							// );
 
 							const dx = clientX - ix,
 								dy = clientY - iy;
@@ -245,12 +211,11 @@ export default () => {
 
 							parentPayload.raw.children = livePayloadChildren;
 
-							// setIns({ ...ins });
+							setIns({ ...ins });
 						}
 					);
 
 					const clean_up = listen("mouseup")(() => {
-						parentPayload.children = parentPayload.raw.children;
 						clean_move();
 						clean_up();
 						setDragComponent(() => () => null);
@@ -272,7 +237,7 @@ export default () => {
 				<DragComponent {...thumbDraggerProps} />
 			</div>
 			<div>
-				<Outline data={ins} ref={outline_ref} />
+				<Outline data={ins} />
 			</div>
 			<pre>{actived_payload.name.toString()}</pre>
 		</div>
