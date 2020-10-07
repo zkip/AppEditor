@@ -11,19 +11,25 @@ const Item = ({ name }) => {
 	return <div className="Item">{name}</div>;
 };
 
-const instances = [
-	{ level: 0, Child: Item, payload: { id: "001", name: "Jackie" } },
-	{ level: 1, Child: Item, payload: { id: "002", name: "Tom" } },
-	{ level: 2, Child: Item, payload: { id: "003", name: "Tee" } },
-	{ level: 2, Child: Item, payload: { id: "005", name: "Juice" } },
-	{ level: 2, Child: Item, payload: { id: "008", name: "Alice" } },
-	{ level: 2, Child: Item, payload: { id: "007", name: "Bob" } },
-	{ level: 2, Child: Item, payload: { id: "090", name: "Jip" } },
-	{ level: 2, Child: Item, payload: { id: "022", name: "Thor" } },
-	{ level: 2, Child: Item, payload: { id: "055", name: "Iss" } },
-	{ level: 2, Child: Item, payload: { id: "004", name: "Hufed" } },
-	{ level: 3, Child: Item, payload: { id: "014", name: "Jud" } },
-];
+const config = {
+	item_type: Item,
+	payloads: [
+		{ id: "001", level: 0, props: { name: "Jackie" }, can_expand: true },
+		{ id: "002", level: 1, props: { name: "Tom" }, can_expand: true },
+		{ id: "003", level: 2, props: { name: "Tee" } },
+		{ id: "005", level: 2, props: { name: "Juice" } },
+		{ id: "008", level: 2, props: { name: "Alice" } },
+		{ id: "007", level: 2, props: { name: "Bob" } },
+		{ id: "090", level: 2, props: { name: "Jip" } },
+		{ id: "022", level: 2, props: { name: "Thor" } },
+		{ id: "055", level: 2, props: { name: "Iss" } },
+		{ id: "004", level: 2, props: { name: "Hufed" }, can_expand: true },
+		{ id: "014", level: 3, props: { name: "Jud" } },
+		{ id: "032", level: 3, props: { name: "Fck" } },
+		{ id: "018", level: 1, props: { name: "Fip" } },
+		{ id: "043", level: 2, props: { name: "Ioo" } },
+	],
+};
 
 function getDOMBound(dom) {
 	const styles = getComputedStyle(dom);
@@ -68,10 +74,11 @@ const indent = 20;
 const lineHeight = 20;
 
 export default () => {
-	const [ins, setIns] = useState(instances);
 	const [DragComponent, setDragComponent] = useState(() => ThumbDragger);
 	const [thumbDraggerProps, setThumbDraggerProps] = useState({});
-	const outlineReducer = useOutlineReducer(makeOutlineState(instances));
+	const outlineReducer = useOutlineReducer({
+		state: makeOutlineState(config),
+	});
 	// console.log(outlineReducer[0], "---");
 
 	// const outline_ref = useRef();
