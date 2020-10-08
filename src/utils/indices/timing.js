@@ -51,9 +51,39 @@ export function TimingIndex(source) {
 }
 
 export default function proxy(source) {
-	const indexer = TimingIndex(source);
+	function constructor(source) {
+		const host = [...source];
+		const indexer = TimingIndex(host);
 
-	return Object.assign([...source], {
-		splice()
-	})
+		function splice(start_position, delete_count = 0, ...append_items) {
+			for (let i = 0; i < delete_count; i++) {
+				indexer.onRemoved(start_position + i);
+			}
+			for (let i = 0; i < append_items.length; i++) {
+				indexer.onInserted(start_position + i);
+			}
+			return Array.prototype.splice.call(
+				host,
+				start_position,
+				delete_count,
+				...append_items
+			);
+		}
+
+		function clone() {
+			return constructor(host);
+		}
+
+		function get(index, timing) {
+			return indexer.get(index, timing);
+		}
+
+		return Object.assign(host, {
+			splice,
+			clone,
+			get,
+		});
+	}
+
+	return constructor(source);
 }
