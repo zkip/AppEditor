@@ -5,10 +5,8 @@ const isPositive = function (n) {
 };
 
 export function TimingIndex(source) {
-	function constructor(source = []) {
-		const change_process = [];
-
-		source.map((_, idx) => onInserted(idx));
+	function constructor({ source = [], change_process = [] } = {}) {
+		const init_timing = source.map((_, idx) => onInserted(idx));
 
 		// id string, p uint
 		function onInserted(index) {
@@ -18,6 +16,7 @@ export function TimingIndex(source) {
 
 		function onRemoved(index) {
 			change_process.push(-index);
+			// console.log(change_process, "@@@@@@@@");
 		}
 
 		function has(index, timing) {}
@@ -40,14 +39,24 @@ export function TimingIndex(source) {
 			return position;
 		}
 
+		function getInitTiming() {
+			return init_timing;
+		}
+
+		function clone() {
+			return constructor({ source, change_process: [...change_process] });
+		}
+
 		return {
+			clone,
 			onInserted,
 			onRemoved,
 			get,
+			getInitTiming,
 		};
 	}
 
-	return constructor(source);
+	return constructor({ source });
 }
 
 export default function proxy(source) {
@@ -56,18 +65,25 @@ export default function proxy(source) {
 		const indexer = TimingIndex(host);
 
 		function splice(start_position, delete_count = 0, ...append_items) {
+			const timing_items = new Array(append_items.length);
 			for (let i = 0; i < delete_count; i++) {
 				indexer.onRemoved(start_position + i);
 			}
 			for (let i = 0; i < append_items.length; i++) {
-				indexer.onInserted(start_position + i);
+				const index = start_position + i;
+				const timing = indexer.onInserted(index);
+				timing_items[i] = [index, timing];
 			}
-			return Array.prototype.splice.call(
+			const effected_items = Array.prototype.splice.call(
 				host,
 				start_position,
 				delete_count,
 				...append_items
 			);
+
+			return Object.assign(effected_items, {
+				timing: timing_items,
+			});
 		}
 
 		function clone() {

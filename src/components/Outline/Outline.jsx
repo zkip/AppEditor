@@ -1,8 +1,18 @@
 import { joinBySpace, inBound, inArrayBound } from "@/utils/array";
 import { listen } from "@/utils/fn";
-import { useRef, useEffect, forwardRef, useState, useReducer } from "react";
+import {
+	useRef,
+	useEffect,
+	forwardRef,
+	useState,
+	useReducer,
+	useCallback,
+	useMemo,
+} from "react";
 import "./Outline.css";
 import { useComponentIndexer } from "@/utils/uses/mapper";
+import { TimingIndex } from "@/utils/indices/timing";
+import { isEmpty, isNotEmpty } from "@/utils/asserts";
 
 export const node_map = {};
 export const dom_payload_map = new Map();
@@ -77,8 +87,12 @@ export const makeOutlineState = ({
 	};
 };
 
-function genHierarchyAnalyzer() {
-	function constructor({ hierarchy_map = { relation: [], size: [] } } = {}) {
+function genHierarchyAnalyzer({ indexer = TimingIndex([]) } = {}) {
+	function constructor({
+		hierarchy_map = { relation: [], size: [] },
+		timings = {},
+		indexer,
+	} = {}) {
 		let {
 			relation: live_relation_map,
 			size: live_size_map,
@@ -89,13 +103,29 @@ function genHierarchyAnalyzer() {
 			const prev_index = inArrayBound(flat_tree)(index - 1);
 			const prev_level = flat_tree[prev_index].level;
 			const diff_level = level - prev_level;
+
+			const timing = indexer.onInserted(index);
+			timings[index] = timing;
+
 			if (diff_level > 0) {
-				live_relation_map[index] = prev_index;
-				live_size_map[prev_index] = 1;
+				if (index - live_relation_map.length > 0) {
+					live_relation_map[index] = prev_index;
+				} else {
+					live_relation_map.splice(index, 0, prev_index);
+				}
+				if (prev_index - live_size_map.length > 0) {
+					live_size_map[prev_index] = 1;
+				} else {
+					live_size_map.splice(prev_index, 0, 1);
+				}
+				// console.log(index, "---", prev_index);
+				// live_size_map.splice(prev_index, 0, 1);
 			} else if (diff_level === 0) {
 				const parent_id = live_relation_map[prev_index];
 				if (parent_id) {
-					live_relation_map[index] = parent_id;
+					// live_relation_map[index] = parent_id;
+					// live_size_map[parent_id]++;
+					live_relation_map.splice(index, 0, parent_id);
 					live_size_map[parent_id]++;
 				}
 			} else {
@@ -116,10 +146,13 @@ function genHierarchyAnalyzer() {
 
 		function onRemoved(_, index) {
 			const parent_index = live_relation_map[index];
-			console.log(live_relation_map, "---===");
 			live_relation_map.splice(index, 1);
+			// live_relation_map[index] = undefined;
 			live_size_map[parent_index]--;
-			live_size_map.splice(index, 1);
+			// live_size_map.splice(index, 1);
+			indexer.onRemoved(index);
+			const live_index = get(index);
+			delete timings[live_index];
 		}
 
 		function getHierarchyMap() {
@@ -132,6 +165,8 @@ function genHierarchyAnalyzer() {
 					relation: [...live_relation_map],
 					size: [...live_size_map],
 				},
+				timings: { ...timings },
+				indexer: indexer.clone(),
 			});
 		}
 
@@ -140,9 +175,15 @@ function genHierarchyAnalyzer() {
 			live_size_map = hierarchy_map.size;
 		}
 
+		function get(index) {
+			// console.log(timings, index, timings[index], "@@@@");
+			return indexer.get(index, timings[index]);
+		}
+
 		const exports = {
 			clone,
 			apply,
+			get,
 			onInserted,
 			onRemoved,
 			getHierarchyMap,
@@ -151,7 +192,7 @@ function genHierarchyAnalyzer() {
 		return Object.assign([getHierarchyMap, exports], exports);
 	}
 
-	return constructor();
+	return constructor({ indexer });
 }
 
 export const useOutlineReducer = ({
@@ -161,6 +202,8 @@ export const useOutlineReducer = ({
 	state.payloads.map(hierarchy_analyzer.onInserted);
 	state.hierarchy_map = hierarchy_analyzer.getHierarchyMap();
 	state.hierarchy_analyzer = hierarchy_analyzer;
+
+	console.log(state.hierarchy_map);
 
 	const reducer = useReducer((state, action) => {
 		if (action.type === "delete") {
@@ -259,12 +302,8 @@ export default ({
 						const hierarchy_analyzer = records
 							.get(init_hierarchy_analyzer_id)
 							.clone();
-						const init_payload = payloads[init_index];
 						const hierarchy_map = hierarchy_analyzer.getHierarchyMap();
-						console.log(
-							hierarchy_analyzer.getHierarchyMap(),
-							init_index
-						);
+						const init_payload = payloads[init_index];
 
 						const prev_index = inArrayBound(payloads)(
 							live_index - 1
@@ -282,19 +321,29 @@ export default ({
 
 						const { size, relation } = hierarchy_map;
 						const live_parent_index = relation[live_index];
-						const live_is_parent = live_index in size;
+						const live_is_parent = isNotEmpty(size[live_index]);
 
 						payloads.splice(init_index, 1);
 						hierarchy_analyzer.onRemoved({}, init_index);
 
-						// payloads.splice(live_index, 0, init_payload);
-						// hierarchy_analyzer.onInserted(
-						// 	init_payload,
-						// 	live_index,
-						// 	payloads
-						// );
-
-						console.log(init_payload, payloads, "===");
+						payloads.splice(live_index, 0, init_payload);
+						hierarchy_analyzer.onInserted(
+							init_payload,
+							live_index,
+							payloads
+						);
+						const live_parent_index_fixed = hierarchy_analyzer.get(
+							live_parent_index
+						);
+						console.log(
+							init_payload ===
+								payloads[hierarchy_analyzer.get(live_index)],
+							live_parent_index_fixed,
+							relation,
+							size,
+							"____________"
+						);
+						// console.log(live_parent_index_fixed, live_is_parent);
 
 						// const should_level =
 						// 	payloads[live_parent_index].level + 1;
@@ -304,21 +353,36 @@ export default ({
 
 						// const diff_level = live_level - prev_level;
 
+						const payload = payloads[live_parent_index_fixed];
+						// console.log(
+						// 	payload,
+						// 	live_parent_index_fixed,
+						// 	payloads,
+						// 	"888888"
+						// );
+						let should_level = payload.level + 1;
 						if (live_is_parent) {
+							should_level += 1;
 							// if (live_index < init_index) {
 							// 	init_payload.level = should_level;
 							// } else {
 							// 	init_payload.level = should_level + 1;
 							// }
 						} else {
+							// const payload = payloads[live_parent_index_fixed];
+							// const should_level = payload.level + 1;
+							// init_payload.level = should_level;
 							// if (live_index < init_index) {
 							// 	init_payload.level = should_level;
 							// } else if (live_index > init_index) {
 							// 	init_payload.level =
 							// 		payloads[live_parent_index - 1].level + 1;
 							// }
-							// init_payload.level = should_level;
 						}
+
+						init_payload.level = should_level;
+
+						// console.log(payloads, "===", live_parent_index_fixed);
 
 						if (live_is_parent) {
 						} else {
