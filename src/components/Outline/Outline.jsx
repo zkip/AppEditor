@@ -60,18 +60,68 @@ const Node = ({ data, top_payload }) => {
 
 export function getPayload() {}
 
-const FlatNode = forwardRef(({ item_type, level, props, ...rest }, ref) => {
-	const Item = item_type;
-	return (
-		<div className="node" ref={ref}>
-			<div className="title" style={{ paddingLeft: `${level * 20}px` }}>
-				<Item {...props} />
+const FlatNode = forwardRef(
+	({ item_type, level = 0, props = {}, ...rest } = {}, ref) => {
+		const Item = item_type;
+		return (
+			<div className="node" ref={ref}>
+				<div
+					className="title"
+					style={{ paddingLeft: `${level * 20}px` }}
+				>
+					<Item {...props} />
+				</div>
 			</div>
-		</div>
-	);
-});
+		);
+	}
+);
 
 const lineHeight = 20;
+
+function ArrayMapper(array) {
+	function constructor({ list, map = {} }) {
+		list.map((item) => (map[item.id] = item));
+
+		function clone() {
+			return constructor({ list: list.slice(), map: {} });
+		}
+
+		function remove(id) {
+			delete map[id];
+		}
+
+		function splice(start_position, delete_count, ...append_items) {
+			const be_culled = list.splice(
+				start_position,
+				delete_count,
+				...append_items
+			);
+
+			be_culled.map(({ id }) => remove(id));
+
+			return be_culled;
+		}
+
+		function map(...args) {
+			return list.map(...args);
+		}
+
+		function get(id) {
+			return map[id];
+		}
+
+		return {
+			get,
+			clone,
+			remove,
+			splice,
+			list,
+			map,
+		};
+	}
+
+	return constructor({ list: array });
+}
 
 // type Payload { id, level, can_expand, type_self, props }
 // type PayloadList []Payload
@@ -83,7 +133,7 @@ export const makeOutlineState = ({
 	return {
 		hierarchy_map: {},
 		item_type,
-		payloads,
+		payloads: ArrayMapper(payloads),
 		relayed,
 		records: new Map(),
 	};
@@ -109,7 +159,7 @@ function genHierarchyAnalyzer({} = {}) {
 			size: live_size_map,
 		} = hierarchy_map;
 
-		console.log(live_size_map);
+		// console.log(live_size_map);
 
 		// type HierarchyNode Payload
 		function onInserted({ level, id }, index, payloads) {
@@ -239,8 +289,6 @@ function genHierarchyAnalyzer({} = {}) {
 			live_size_map[relation.parent]--;
 		}
 
-		function getShouldLevel({ id }) {}
-
 		function clone() {
 			return constructor({
 				hierarchy_map: {
@@ -255,14 +303,16 @@ function genHierarchyAnalyzer({} = {}) {
 			live_size_map = hierarchy_map.size;
 		}
 
-		function get({ id }, index) {}
+		function getHierarchyMap() {
+			return hierarchy_map;
+		}
 
 		const exports = {
 			clone,
 			apply,
-			get,
 			onInserted,
 			onRemoved,
+			getHierarchyMap,
 		};
 
 		return Object.assign([exports], exports);
@@ -279,7 +329,7 @@ export const useOutlineReducer = ({
 
 	useMemo(() => {
 		state.payloads.map(hierarchy_analyzer.onInserted);
-	}, [...state.payloads]);
+	}, [...state.payloads.list]);
 
 	const reducer = useReducer((state, action) => {
 		if (action.type === "delete") {
@@ -292,7 +342,7 @@ export const useOutlineReducer = ({
 			const { records, payloads } = state;
 			const extra_data = extra(state);
 
-			records.set(id, payloads.slice());
+			records.set(id, payloads.clone());
 			Object.getOwnPropertySymbols(extra_data).map((sym) => {
 				records.set(sym, extra_data[sym]);
 			});
@@ -308,7 +358,7 @@ export const useOutlineReducer = ({
 			return { ...state, records };
 		} else if (action.type === "setBasedOn") {
 			const { id, affect } = action;
-			const payloads = affect(state.records.get(id).slice(), state);
+			const payloads = affect(state.records.get(id).clone(), state);
 			return { ...state, payloads };
 		} else if (action.type === "set") {
 			const { affect } = action;
@@ -320,6 +370,10 @@ export const useOutlineReducer = ({
 	return reducer;
 };
 
+const EmptyNode = forwardRef(({ ...rest }, ref) => (
+	<div ref={ref} {...rest}></div>
+));
+
 export default ({
 	reducer = useOutlineReducer(),
 	className,
@@ -328,77 +382,132 @@ export default ({
 }) => {
 	const ref = useRef();
 	const cls = joinBySpace(className, "Outline");
-	const [path_index, setPahtIndex] = useState(0);
 	const [Node, mapper] = useComponentIndexer(FlatNode);
 	const [state, dispatch] = reducer;
+	const [thumb_props, setThumbProps] = useState({
+		offset: 0,
+		node_props: { item_type: EmptyNode },
+	});
 
 	useEffect(() => {
 		if (!ref) return;
 		const top_node_dom = ref.current;
 		const top_bound = top_node_dom.getBoundingClientRect();
-		return listen("mousedown", top_node_dom, { capture: false })((e) => {
-			const { path, clientY } = e;
-			const item_dom = path[path.length - path_index - 3];
-			const payload = mapper.get(item_dom);
+		return listen(
+			"mousedown",
+			top_node_dom
+		)((e) => {
+			const { path, clientX, clientY } = e;
 
 			const local_offset = (clientY - top_bound.y) % lineHeight;
 			const init_index =
 				(clientY - top_bound.y - local_offset) / lineHeight;
 
 			const id = Symbol();
-			const init_payload_level_id = Symbol();
 			const init_hierarchy_analyzer_id = Symbol();
+			const init_payload_level_id = Symbol();
+
+			const init_payload_node_position =
+				init_index * lineHeight + local_offset;
 
 			dispatch({
 				type: "save",
 				id,
 				extra: ({ payloads, hierarchy_analyzer }) => ({
-					[init_payload_level_id]: payloads[init_index].level,
+					[init_payload_level_id]: payloads.list[init_index].level,
 					[init_hierarchy_analyzer_id]: hierarchy_analyzer.clone(),
 				}),
 			});
 
-			const clean_move = listen("mousemove")(({ clientY }) => {
+			const ix = clientX,
+				iy = clientY;
+
+			const clean_move = listen("mousemove")(({ clientX, clientY }) => {
 				const local_offset = (clientY - top_bound.y) % lineHeight;
 				const live_index =
 					(clientY - top_bound.y - local_offset) / lineHeight;
+
 				dispatch({
 					type: "set",
 					affect({ records }) {
-						const payloads = records.get(id).slice();
+						const payloads = records.get(id).clone();
 						const hierarchy_analyzer = records
 							.get(init_hierarchy_analyzer_id)
 							.clone();
-						const init_payload = payloads[init_index];
+						const init_payload = payloads.list[init_index];
 
-						const prev_index = inArrayBound(payloads)(
-							live_index - 1
-						);
-						const next_index = inArrayBound(payloads)(live_index);
-						const prev_payload = payloads[prev_index];
-						const next_payload = payloads[next_index];
+						const hierarchy_map = hierarchy_analyzer.getHierarchyMap();
 
-						const live_is_parent = false;
+						const prev_index = live_index - 1;
+						const next_index = live_index;
+
+						const is_first = live_index === 0;
+						const is_last = live_index === payloads.length - 1;
+
+						const init_relation =
+							hierarchy_map.relation[init_payload.id];
 
 						payloads.splice(init_index, 1);
 						hierarchy_analyzer.onRemoved(
 							init_payload,
 							init_index,
-							payloads
+							payloads.list
 						);
 
-						// payloads.splice(live_index, 0, init_payload);
-						// hierarchy_analyzer.onInserted(
-						// 	init_payload,
-						// 	live_index,
-						// 	payloads
-						// );
+						const prev_payload = payloads.list[prev_index];
+						const next_payload = payloads.list[next_index];
 
-						if (live_is_parent) {
-						} else {
-						}
+						const prev_relation =
+							hierarchy_map.relation[prev_payload.id];
+						const prev_level = prev_payload.level;
+
+						const prev_parent_payload = payloads.get(
+							prev_relation.parent
+						);
+
+						const prev_is_parent =
+							prev_payload.id in hierarchy_map.size;
+
+						const init_level = records.get(init_payload_level_id);
+						const maybe_level =
+							(prev_is_parent
+								? prev_payload.level
+								: prev_parent_payload.level) + 1;
+
+						const x = clientX - ix;
+						const should_level = init_level + x / 20;
+
+						const offset =
+							init_payload_node_position + clientY - iy;
+
+						setThumbProps({
+							node_props: getNodeProps(
+								{ ...init_payload, level: should_level },
+								state
+							),
+							offset,
+						});
+
+						// if (
+						// 	isEmpty(prev_relation.next_sibling) &&
+						// 	!prev_is_parent
+						// ) {
+						// 	if (should_level < maybe_level) {
+						// 		init_payload.level = should_level;
+						// 	}
+						// } else {
+						// }
+						init_payload.level = maybe_level;
+
+						payloads.splice(live_index, 0, init_payload);
+						hierarchy_analyzer.onInserted(
+							init_payload,
+							live_index,
+							payloads.list
+						);
+
 						return {
-							payloads: payloads,
+							payloads,
 							hierarchy_analyzer,
 						};
 					},
@@ -411,28 +520,27 @@ export default ({
 				dispatch({
 					type: "restore",
 					id,
-					extra: [init_payload_level_id],
+					extra: [init_hierarchy_analyzer_id],
 				});
 			});
 		});
-	}, [path_index, ref.current, dispatch]);
-
-	useEffect(() => {
-		if (!ref) return;
-		const top_node_dom = ref.current;
-
-		let index = 0,
-			parent_node = top_node_dom.parentNode;
-		while ((index++, !!(parent_node = parent_node.parentNode)));
-
-		setPahtIndex(index);
-	}, [ref && ref.current]);
+	}, [ref.current, dispatch]);
 
 	return (
 		<div className={cls} ref={ref}>
-			{state.payloads.map((payload) => (
-				<Node key={payload.id} {...getNodeProps(payload, state)} />
-			))}
+			<div className="holder">
+				<div
+					className="thumb"
+					style={{ top: thumb_props.offset + "px" }}
+				>
+					<Node {...thumb_props.node_props} />
+				</div>
+			</div>
+			<div className="list">
+				{state.payloads.map((payload) => (
+					<Node key={payload.id} {...getNodeProps(payload, state)} />
+				))}
+			</div>
 		</div>
 	);
 };

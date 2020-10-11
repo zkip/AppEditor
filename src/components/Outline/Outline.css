@@ -1,6 +1,25 @@
 .Outline {
 	/* border: 1px solid rebeccapurple; */
 	overflow: hidden;
+	display: grid;
+}
+
+.Outline > * {
+	grid-column: 1 / 2;
+	grid-row: 1 / 2;
+}
+
+.Outline > .holder {
+	z-index: 2;
+	pointer-events: none;
+	display: grid;
+	place-content: stretch;
+	place-items: stretch;
+	/* border: 40px solid rebeccapurple; */
+}
+
+.Outline > .list {
+	z-index: 1;
 }
 
 .Outline .node {

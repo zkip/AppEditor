@@ -5,7 +5,7 @@ import { makeOutlineState } from "@/components/Outline/Outline";
 import { useMapTo } from "@/components/Outline/Outline";
 import { listen } from "@/utils/fn";
 import { inBound } from "public/workspace/Box/utils/array";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useReducer } from "react";
 
 const Item = ({ name }) => {
 	return <div className="Item">{name}</div>;
