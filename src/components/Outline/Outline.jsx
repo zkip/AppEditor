@@ -329,7 +329,7 @@ export const useOutlineReducer = ({
 
 	useMemo(() => {
 		state.payloads.map(hierarchy_analyzer.onInserted);
-	}, [...state.payloads.list]);
+	}, [state.payloads]);
 
 	const reducer = useReducer((state, action) => {
 		if (action.type === "delete") {
@@ -388,6 +388,16 @@ export default ({
 		offset: 0,
 		node_props: { item_type: EmptyNode },
 	});
+	const payloads = useRef();
+	const hierarchy_analyzer = useRef();
+
+	useEffect(() => {
+		payloads.current = state.payloads;
+	}, [state.payloads]);
+
+	useEffect(() => {
+		hierarchy_analyzer.current = state.hierarchy_analyzer;
+	}, [state.hierarchy_analyzer]);
 
 	useEffect(() => {
 		if (!ref) return;
@@ -403,125 +413,132 @@ export default ({
 			const init_index =
 				(clientY - top_bound.y - local_offset) / lineHeight;
 
-			const id = Symbol();
-			const init_hierarchy_analyzer_id = Symbol();
-			const init_payload_level_id = Symbol();
-
 			const init_payload_node_position =
 				init_index * lineHeight + local_offset;
 
-			dispatch({
-				type: "save",
-				id,
-				extra: ({ payloads, hierarchy_analyzer }) => ({
-					[init_payload_level_id]: payloads.list[init_index].level,
-					[init_hierarchy_analyzer_id]: hierarchy_analyzer.clone(),
-				}),
-			});
+			// dispatch({
+			// 	type: "save",
+			// 	id,
+			// 	extra: ({ payloads, hierarchy_analyzer }) => ({
+			// 		[init_payload_level_id]: payloads.list[init_index].level,
+			// 		[init_hierarchy_analyzer_id]: hierarchy_analyzer.clone(),
+			// 	}),
+			// });
+
+			// dispatch({
+			// 	type: "set",
+			// 	affect: ({ payloads, hierarchy_analyzer }) => {
+			// 		const [payload] = payloads.splice(init_index, 1);
+			// 		hierarchy_analyzer.onRemoved(
+			// 			payload,
+			// 			init_index,
+			// 			payloads.list
+			// 		);
+			// 		return { payloads, hierarchy_analyzer };
+			// 	},
+			// });
 
 			const ix = clientX,
 				iy = clientY;
 
+			const payloads_locked = payloads.current.clone();
+			const hierarchy_analyzer_locked = hierarchy_analyzer.current.clone();
+			const init_payload = payloads_locked.list[init_index];
+
 			const clean_move = listen("mousemove")(({ clientX, clientY }) => {
-				const local_offset = (clientY - top_bound.y) % lineHeight;
+				const payloads_live = payloads_locked.clone();
+				const hierarchy_analyzer_live = hierarchy_analyzer_locked.clone();
+				// const hierarchy_map = hierarchy_analyzer_live.getHierarchyMap();
+
+				// const local_offset = (clientY - top_bound.y) % lineHeight;
 				const live_index =
 					(clientY - top_bound.y - local_offset) / lineHeight;
 
+				// const prev_index = live_index - 1;
+				// const next_index = live_index + 1;
+
+				// console.log(prev_index, next_index);
+
+				// const is_first = live_index === 0;
+				// const is_last = live_index === payloads_live.length - 1;
+
+				// const init_relation = hierarchy_map.relation[init_payload.id];
+
+				// const prev_payload = payloads_live.list[prev_index];
+				// const next_payload = payloads_live.list[next_index];
+
+				// const prev_relation = hierarchy_map.relation[prev_payload.id];
+				// const prev_level = prev_payload.level;
+
+				// const prev_parent_payload = payloads_live.get(
+				// 	prev_relation.parent
+				// );
+
+				// const prev_is_parent = prev_payload.id in hierarchy_map.size;
+
+				// const init_level = init_payload.level;
+				// const maybe_level =
+				// 	(prev_is_parent
+				// 		? prev_payload.level
+				// 		: prev_parent_payload.level) + 1;
+
+				// const x = clientX - ix;
+				// const should_level = init_level + x / 20;
+
+				const offset = init_payload_node_position + clientY - iy;
+
+				// setThumbProps({
+				// 	node_props: getNodeProps(
+				// 		{ ...init_payload, level: should_level },
+				// 		state
+				// 	),
+				// 	offset,
+				// });
+				setThumbProps({
+					node_props: getNodeProps(
+						{ ...init_payload, level: clientX / 20 },
+						state
+					),
+					offset,
+				});
+
+				// if (
+				// 	isEmpty(prev_relation.next_sibling) &&
+				// 	!prev_is_parent
+				// ) {
+				// 	if (should_level < maybe_level) {
+				// 		init_payload.level = should_level;
+				// 	}
+				// } else {
+				// }
+				// init_payload.level = maybe_level;
+
+				payloads_live.splice(init_index, 1);
+				hierarchy_analyzer_live.onRemoved(
+					init_payload,
+					init_index,
+					payloads_live.list
+				);
+
+				payloads_live.splice(live_index >> 0, 0, init_payload);
+				hierarchy_analyzer_live.onInserted(
+					init_payload,
+					live_index >> 0,
+					payloads_live.list
+				);
+
 				dispatch({
 					type: "set",
-					affect({ records }) {
-						const payloads = records.get(id).clone();
-						const hierarchy_analyzer = records
-							.get(init_hierarchy_analyzer_id)
-							.clone();
-						const init_payload = payloads.list[init_index];
-
-						const hierarchy_map = hierarchy_analyzer.getHierarchyMap();
-
-						const prev_index = live_index - 1;
-						const next_index = live_index;
-
-						const is_first = live_index === 0;
-						const is_last = live_index === payloads.length - 1;
-
-						const init_relation =
-							hierarchy_map.relation[init_payload.id];
-
-						payloads.splice(init_index, 1);
-						hierarchy_analyzer.onRemoved(
-							init_payload,
-							init_index,
-							payloads.list
-						);
-
-						const prev_payload = payloads.list[prev_index];
-						const next_payload = payloads.list[next_index];
-
-						const prev_relation =
-							hierarchy_map.relation[prev_payload.id];
-						const prev_level = prev_payload.level;
-
-						const prev_parent_payload = payloads.get(
-							prev_relation.parent
-						);
-
-						const prev_is_parent =
-							prev_payload.id in hierarchy_map.size;
-
-						const init_level = records.get(init_payload_level_id);
-						const maybe_level =
-							(prev_is_parent
-								? prev_payload.level
-								: prev_parent_payload.level) + 1;
-
-						const x = clientX - ix;
-						const should_level = init_level + x / 20;
-
-						const offset =
-							init_payload_node_position + clientY - iy;
-
-						setThumbProps({
-							node_props: getNodeProps(
-								{ ...init_payload, level: should_level },
-								state
-							),
-							offset,
-						});
-
-						// if (
-						// 	isEmpty(prev_relation.next_sibling) &&
-						// 	!prev_is_parent
-						// ) {
-						// 	if (should_level < maybe_level) {
-						// 		init_payload.level = should_level;
-						// 	}
-						// } else {
-						// }
-						init_payload.level = maybe_level;
-
-						payloads.splice(live_index, 0, init_payload);
-						hierarchy_analyzer.onInserted(
-							init_payload,
-							live_index,
-							payloads.list
-						);
-
-						return {
-							payloads,
-							hierarchy_analyzer,
-						};
-					},
+					affect: () => ({
+						payloads: payloads_live,
+						hierarchy_analyzer: hierarchy_analyzer_live,
+					}),
 				});
 			});
 
 			const clean_up = listen("mouseup")(() => {
 				clean_move();
 				clean_up();
-				dispatch({
-					type: "restore",
-					id,
-					extra: [init_hierarchy_analyzer_id],
-				});
 			});
 		});
 	}, [ref.current, dispatch]);
