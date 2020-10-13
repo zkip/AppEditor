@@ -1,5 +1,5 @@
 <script>
-	import Outline from "@/components/Outline";
+	import Outline from "../components/Outline";
 	import { onMount } from "svelte";
 	import { writable } from "svelte/store";
 	import { data } from "@/store/outline";
@@ -14,4 +14,4 @@
 
 <Outline {data} />
 
-<span>{$data.payloads.length}</span>
+<span>{$data.payloads.list.length}</span>

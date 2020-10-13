@@ -1,7 +1,9 @@
-import { writable } from "svelte/store";
 import Item from "@/components/Item";
+import { writable } from "svelte/store";
 
-export const data = writable({
+import { config } from "../components/Outline";
+
+export const data = config({
 	item_type: Item,
 	payloads: [
 		{ id: "001", level: 0, props: { name: "Jackie" }, can_expand: true },
