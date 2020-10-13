@@ -31,17 +31,27 @@
 
 			const init_index = ((iy - bound.y) / lineheight) >> 0;
 
+			const payloads_locked = payloads.clone();
+
 			console.log(init_index, "--");
 
-			const init_payload = payloads[init_index];
+			const init_payload = payloads_locked[init_index];
 
-			payloads.splice(init_index, 1);
-			data.set($data);
-
-			const clean_move = listen("mousemove")(({ clientX, clientY }) => {
+			const clean_move = listen("mousemove")(function DumpDDD({
+				clientX,
+				clientY,
+			}) {
 				const dx = clientX - ix;
 				const dy = clientY - iy;
-				console.log(dx, dy);
+				const payloads_live = payloads_locked.clone();
+				const live_index = ((clientY - bound.y) / lineheight) >> 0;
+
+				const [init_payload] = payloads_live.splice(init_index, 1);
+
+				payloads_live.splice(live_index, 0, init_payload);
+
+				$data.payloads = payloads_live;
+				data.set($data);
 			});
 
 			const clean_up = listen("mouseup")(() => {
