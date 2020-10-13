@@ -14,7 +14,7 @@ import { useComponentIndexer } from "@/utils/uses/mapper";
 import { TimingIndex } from "@/utils/indices/timing";
 import { isEmpty, isNotEmpty } from "@/utils/asserts";
 import next from "next";
-import { last } from "public/workspace/Box/utils/array";
+import { last } from "@/utils/array";
 
 export const node_map = {};
 export const dom_payload_map = new Map();
@@ -367,6 +367,7 @@ export const useOutlineReducer = ({
 			return state;
 		}
 	}, state);
+
 	return reducer;
 };
 
@@ -446,13 +447,14 @@ export default ({
 			const init_payload = payloads_locked.list[init_index];
 
 			const clean_move = listen("mousemove")(({ clientX, clientY }) => {
-				const payloads_live = payloads_locked.clone();
-				const hierarchy_analyzer_live = hierarchy_analyzer_locked.clone();
+				let start_stamp = Date.now();
+				// const payloads_live = payloads_locked.clone();
+				// const hierarchy_analyzer_live = hierarchy_analyzer_locked.clone();
 				// const hierarchy_map = hierarchy_analyzer_live.getHierarchyMap();
 
 				// const local_offset = (clientY - top_bound.y) % lineHeight;
-				const live_index =
-					(clientY - top_bound.y - local_offset) / lineHeight;
+				// const live_index =
+				// 	(clientY - top_bound.y - local_offset) / lineHeight;
 
 				// const prev_index = live_index - 1;
 				// const next_index = live_index + 1;
@@ -476,31 +478,31 @@ export default ({
 
 				// const prev_is_parent = prev_payload.id in hierarchy_map.size;
 
-				// const init_level = init_payload.level;
+				const init_level = init_payload.level;
 				// const maybe_level =
 				// 	(prev_is_parent
 				// 		? prev_payload.level
 				// 		: prev_parent_payload.level) + 1;
 
-				// const x = clientX - ix;
-				// const should_level = init_level + x / 20;
+				const x = clientX - ix;
+				const should_level = init_level + x / 20;
 
 				const offset = init_payload_node_position + clientY - iy;
 
-				// setThumbProps({
-				// 	node_props: getNodeProps(
-				// 		{ ...init_payload, level: should_level },
-				// 		state
-				// 	),
-				// 	offset,
-				// });
 				setThumbProps({
 					node_props: getNodeProps(
-						{ ...init_payload, level: clientX / 20 },
+						{ ...init_payload, level: should_level },
 						state
 					),
 					offset,
 				});
+				// setThumbProps({
+				// 	node_props: getNodeProps(
+				// 		{ ...init_payload, level: clientX / 20 },
+				// 		state
+				// 	),
+				// 	offset,
+				// });
 
 				// if (
 				// 	isEmpty(prev_relation.next_sibling) &&
@@ -513,27 +515,32 @@ export default ({
 				// }
 				// init_payload.level = maybe_level;
 
-				payloads_live.splice(init_index, 1);
-				hierarchy_analyzer_live.onRemoved(
-					init_payload,
-					init_index,
-					payloads_live.list
-				);
+				// payloads_live.splice(init_index, 1);
+				// hierarchy_analyzer_live.onRemoved(
+				// 	init_payload,
+				// 	init_index,
+				// 	payloads_live.list
+				// );
 
-				payloads_live.splice(live_index >> 0, 0, init_payload);
-				hierarchy_analyzer_live.onInserted(
-					init_payload,
-					live_index >> 0,
-					payloads_live.list
-				);
+				// payloads_live.splice(live_index >> 0, 0, init_payload);
+				// hierarchy_analyzer_live.onInserted(
+				// 	init_payload,
+				// 	live_index >> 0,
+				// 	payloads_live.list
+				// );
 
-				dispatch({
-					type: "set",
-					affect: () => ({
-						payloads: payloads_live,
-						hierarchy_analyzer: hierarchy_analyzer_live,
-					}),
-				});
+				// let start_stamp_dispatch = Date.now();
+				// dispatch({
+				// 	type: "set",
+				// 	affect: () => ({
+				// 		payloads: payloads_live,
+				// 		hierarchy_analyzer: hierarchy_analyzer_live,
+				// 	}),
+				// });
+				// console.log(
+				// 	Date.now() - start_stamp,
+				// 	Date.now() - start_stamp_dispatch
+				// );
 			});
 
 			const clean_up = listen("mouseup")(() => {
@@ -541,7 +548,7 @@ export default ({
 				clean_up();
 			});
 		});
-	}, [ref.current, dispatch]);
+	}, [ref.current]);
 
 	return (
 		<div className={cls} ref={ref}>

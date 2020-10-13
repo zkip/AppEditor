@@ -1,17 +1,7 @@
-import Outline from "@/components/Outline";
-import { node_map, dom_payload_map } from "@/components/Outline";
-import { useOutlineReducer } from "@/components/Outline/Outline";
-import { makeOutlineState } from "@/components/Outline/Outline";
-import { useMapTo } from "@/components/Outline/Outline";
-import { listen } from "@/utils/fn";
-import { inBound } from "public/workspace/Box/utils/array";
-import { useEffect, useRef, useState, useReducer, Component } from "react";
+import { writable } from "svelte/store";
+import Item from "@/components/Item";
 
-const Item = ({ name }) => {
-	return <div className="Item">{name}</div>;
-};
-
-const config = {
+export const data = writable({
 	item_type: Item,
 	payloads: [
 		{ id: "001", level: 0, props: { name: "Jackie" }, can_expand: true },
@@ -33,20 +23,4 @@ const config = {
 		{ id: "104", level: 3, props: { name: "Lumien" } },
 		{ id: "105", level: 3, props: { name: "Poplim" } },
 	],
-};
-
-export default () => {
-	const reducer = useOutlineReducer({
-		state: makeOutlineState(config),
-	});
-
-	return (
-		<div>
-			<div className="DragLayer"></div>
-			<div>
-				<Outline reducer={reducer} />
-			</div>
-			<pre>{""}</pre>
-		</div>
-	);
-};
+});
