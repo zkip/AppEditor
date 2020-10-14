@@ -81,13 +81,6 @@ export function genHierarchyAnalyzer({} = {}) {
 					prev_id,
 					-diff_level
 				);
-				console.log(
-					id,
-					"-------------",
-					prev_sibling_id,
-					prev_id,
-					diff_level
-				);
 
 				const parent_relation = fallback(Relation(id))(
 					live_relation_map[prev_sibling_id]

@@ -91,6 +91,8 @@
 
 				const prev_relation =
 					hierarchy_map_live.relation[prev_payload.id] || {};
+				const live_relation =
+					hierarchy_map_live.relation[live_payload.id] || {};
 
 				const init_level = init_payload.level;
 				const live_level = live_payload.level;
@@ -107,18 +109,6 @@
 				const holder_payload = { ...init_payload, type_self: Holder };
 
 				let maybe_level = live_payload.level;
-
-				const x = clientX - ix;
-				// const should_level = init_level + x / 20;
-				const should_level = 0;
-
-				// thumb holder
-				$thumb_data.state.item_type = item_type;
-				$thumb_data.state.payloads = ArrayMapper([
-					{ ...init_payload, level: maybe_level },
-				]);
-				thumb_data.set($thumb_data);
-				thumb_offset = init_payload_node_position + dy;
 
 				// < 0 : top, > 0 : bottom
 				const direction = live_index - init_index;
@@ -140,7 +130,27 @@
 					}
 				}
 
+				const allowed_jump = false;
+
+				const is_last_child = isEmpty(live_relation.next_sibling);
+
+				console.log(is_last_child, "@@@@", live_relation);
+
+				const allowed_levels = [];
+
 				holder_payload.level = init_payload.level = maybe_level;
+
+				const x = clientX - ix;
+				// const should_level = init_level + x / 20;
+				const should_level = 0;
+
+				// thumb holder
+				$thumb_data.state.item_type = item_type;
+				$thumb_data.state.payloads = ArrayMapper([
+					{ ...init_payload, level: maybe_level },
+				]);
+				thumb_data.set($thumb_data);
+				thumb_offset = init_payload_node_position + dy;
 
 				payloads_live.splice(init_index, 1);
 				hierarchy_analyzer_live.onRemoved(
@@ -167,15 +177,30 @@
 				clean_move();
 				clean_up();
 
+				actived_index = EMPTY_NUMBER;
+
 				if (isNotEmpty(live_index)) {
 					payloads.splice(live_index, 1, init_payload);
 
+					hierarchy_analyzer.onRemoved(
+						init_payload,
+						live_index,
+						payloads.list
+					);
+
+					hierarchy_analyzer.onInserted(
+						init_payload,
+						live_index,
+						payloads.list
+					);
 					data.set($data);
 				}
 
 				$thumb_data.state.item_type = EmptyComponent;
 				$thumb_data.state.payloads = ArrayMapper();
 				thumb_data.set($thumb_data);
+
+				console.log(hierarchy_analyzer.getHierarchyMap().relation);
 			});
 		});
 		cleaners.push(clean_drag);
