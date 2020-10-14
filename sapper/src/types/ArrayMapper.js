@@ -1,5 +1,4 @@
-export function ArrayMapper(array) {
-	console.log("--");
+export function ArrayMapper(array = []) {
 	function constructor({ list, map = {} }) {
 		list.map((item) => (map[item.id] = item));
 

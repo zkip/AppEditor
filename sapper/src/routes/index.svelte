@@ -14,4 +14,4 @@
 
 <Outline {data} />
 
-<span>{$data.payloads.list.length}</span>
+<span>{$data.state.payloads.list.length}</span>

@@ -2,25 +2,43 @@
 	import { onDestroy, onMount } from "svelte";
 	import { get, writable } from "svelte/store";
 	import { listen } from "@/utils/fn";
-	import { config } from "./types";
+	import {
+		config,
+		genHierarchyAnalyzer,
+		DETAILD_BEFORE,
+		DETAILD_In,
+		DETAILD_AFTER,
+		EMPTY_NUMBER,
+	} from "./types";
+	import { isEmpty, isNotEmpty } from "@/utils/asserts";
+	import { ArrayMapper } from "@/types/ArrayMapper";
+	import EmptyComponent from "./Empty";
+	import Holder from "./Holder";
+	import { inArrayBound } from "@/utils/array";
 
 	export let data = config();
-	let lineheight = 24;
+	export let is_fixture = false;
 
-	let item = {};
+	let payloads, item_type, hierarchy_analyzer;
+	let Item;
+
+	let lineheight = 24;
 	let items = [];
 
-	let payloads;
-	let Item;
+	let thumb_data = config();
+	let thumb_offset = 0;
+
+	let actived_index = EMPTY_NUMBER;
+
 	let top_node;
 
 	let cleaners = [];
 
-	$: payloads = $data.payloads;
-	$: Item = $data.item_type;
+	$: payloads = $data.state.payloads;
+	$: Item = item_type = $data.state.item_type;
+	$: hierarchy_analyzer = $data.hierarchy_analyzer;
 
 	onMount(() => {
-		console.log($data, "@@@@@@");
 		const clean_drag = listen(
 			"mousedown",
 			top_node
@@ -29,13 +47,17 @@
 			const ix = clientX;
 			const iy = clientY;
 
-			const init_index = ((iy - bound.y) / lineheight) >> 0;
+			const local_offset = (clientY - bound.y) % lineheight;
+			const init_index = (clientY - bound.y - local_offset) / lineheight;
 
 			const payloads_locked = payloads.clone();
+			const hierarchy_analyzer_locked = hierarchy_analyzer.clone();
 
-			console.log(init_index, "--");
+			const init_payload_node_position = init_index * lineheight;
 
-			const init_payload = payloads_locked[init_index];
+			const init_payload = payloads_locked.list[init_index];
+
+			let live_index;
 
 			const clean_move = listen("mousemove")(function DumpDDD({
 				clientX,
@@ -44,19 +66,116 @@
 				const dx = clientX - ix;
 				const dy = clientY - iy;
 				const payloads_live = payloads_locked.clone();
-				const live_index = ((clientY - bound.y) / lineheight) >> 0;
+				const hierarchy_analyzer_live = hierarchy_analyzer_locked.clone();
+				const hierarchy_map_live = hierarchy_analyzer.getHierarchyMap();
 
-				const [init_payload] = payloads_live.splice(init_index, 1);
+				// const live_index = ((clientY - bound.y) / lineheight) >> 0;
 
-				payloads_live.splice(live_index, 0, init_payload);
+				const local_offset = (clientY - bound.y) % lineheight;
 
-				$data.payloads = payloads_live;
+				live_index = (clientY - bound.y - local_offset) / lineheight;
+
+				live_index = inArrayBound(payloads.list)(live_index);
+
+				const prev_index = live_index - 1;
+				const next_index = live_index + 1;
+
+				const is_first = live_index === 0;
+				const is_last = live_index === payloads_live.list.length - 1;
+				const init_relation =
+					hierarchy_map_live.relation[init_payload.id];
+
+				const live_payload = payloads_live.list[live_index] || {};
+				const prev_payload = payloads_live.list[prev_index] || {};
+				const next_payload = payloads_live.list[next_index] || {};
+
+				const prev_relation =
+					hierarchy_map_live.relation[prev_payload.id] || {};
+
+				const init_level = init_payload.level;
+				const live_level = live_payload.level;
+				const prev_level = prev_payload.level;
+
+				const prev_parent_payload = payloads_live.get(
+					prev_relation.parent
+				);
+
+				const prev_is_parent =
+					prev_payload.id in hierarchy_map_live.size;
+				const live_is_parent =
+					live_payload.id in hierarchy_map_live.size;
+				const holder_payload = { ...init_payload, type_self: Holder };
+
+				let maybe_level = live_payload.level;
+
+				const x = clientX - ix;
+				// const should_level = init_level + x / 20;
+				const should_level = 0;
+
+				// thumb holder
+				$thumb_data.state.item_type = item_type;
+				$thumb_data.state.payloads = ArrayMapper([
+					{ ...init_payload, level: maybe_level },
+				]);
+				thumb_data.set($thumb_data);
+				thumb_offset = init_payload_node_position + dy;
+
+				// < 0 : top, > 0 : bottom
+				const direction = live_index - init_index;
+
+				actived_index = live_index;
+
+				if (direction > 0) {
+					if (is_last) {
+						maybe_level = prev_payload.level;
+					} else {
+						maybe_level = next_payload.level;
+					}
+				} else if (direction < 0) {
+					if (is_first) {
+					} else {
+						maybe_level = prev_is_parent
+							? prev_level + 1
+							: prev_level;
+					}
+				}
+
+				holder_payload.level = init_payload.level = maybe_level;
+
+				payloads_live.splice(init_index, 1);
+				hierarchy_analyzer_live.onRemoved(
+					init_payload,
+					init_index,
+					payloads.list
+				);
+
+				const compensation = direction < 0 ? 0 : -1;
+
+				payloads_live.splice(live_index, 0, holder_payload);
+				hierarchy_analyzer_live.onInserted(
+					init_payload,
+					live_index + compensation,
+					payloads.list
+				);
+
+				$data.state.payloads = payloads_live;
+				$data.hierarchy_analyzer = hierarchy_analyzer_live;
 				data.set($data);
 			});
 
 			const clean_up = listen("mouseup")(() => {
 				clean_move();
 				clean_up();
+
+				if (isNotEmpty(live_index)) {
+					payloads.splice(live_index, 1, init_payload);
+
+					data.set($data);
+				}
+
+				$thumb_data.state.item_type = EmptyComponent;
+				$thumb_data.state.payloads = ArrayMapper();
+				thumb_data.set($thumb_data);
 			});
 		});
 		cleaners.push(clean_drag);
@@ -65,25 +184,70 @@
 	onDestroy(() => {
 		cleaners.map((cleaner) => cleaner());
 	});
+
+	let getNodeCls = () => {};
+	let getItem = ({ index }) => {
+		const { type_self = Item } = payloads.list[index];
+		return type_self;
+	};
+
+	$: getNodeCls = ({ index }) => {
+		return ["node", index === actived_index ? "actived" : false]
+			.filter(Boolean)
+			.join(" ");
+	};
+
+	const cls = ["Outline", is_fixture && "fixture"].filter(Boolean);
 </script>
 
 <style scoped>
 	.Outline {
 		user-select: none;
+		display: grid;
+	}
+	.Outline > * {
+		grid-column: 1 / 2;
+		grid-row: 1 / 2;
+	}
+	.Outline > .holder {
+		z-index: 2;
+		pointer-events: none;
+		position: relative;
+	}
+	.Outline > .holder > .thumb {
+		position: absolute;
+		width: 100%;
+	}
+	.Outline > .list {
+		z-index: 1;
 	}
 	.node .item {
 		height: 24px;
 		border: 1px solid pink;
 		box-sizing: border-box;
 	}
+	.Outline:not(.fixture) .node.actived {
+		box-sizing: border-box;
+		border: 1px dashed rebeccapurple;
+		background: rgba(102, 51, 153, 0.103);
+	}
 </style>
 
-<div class="Outline" bind:this={top_node}>
-	{#each payloads.list as { props, level }, index}
-		<div class="node" bind:this={items[index]}>
-			<div class="item" style="padding-left: {level * 20}px">
-				<svelte:component this={Item} {...props} />
+<div class={cls.join(' ')} bind:this={top_node}>
+	{#if !is_fixture}
+		<div class="holder">
+			<div class="thumb" style="top: {thumb_offset}px">
+				<svelte:self data={thumb_data} is_fixture={true} />
 			</div>
 		</div>
-	{/each}
+	{/if}
+	<div class="list">
+		{#each payloads.list as { props, level }, index}
+			<div class={getNodeCls({ index })} bind:this={items[index]}>
+				<div class="item" style="padding-left: {level * 20}px">
+					<svelte:component this={getItem({ index })} {...props} />
+				</div>
+			</div>
+		{/each}
+	</div>
 </div>
