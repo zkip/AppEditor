@@ -1,7 +1,7 @@
 import Item from "@/components/Item";
 import { writable } from "svelte/store";
 
-import { config } from "../components/Outline";
+import { config } from "@/components/Outline";
 
 export const data = config({
 	state: {
