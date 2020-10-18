@@ -134,7 +134,7 @@
 
 				const is_last_child = isEmpty(live_relation.next_sibling);
 
-				console.log(is_last_child, "@@@@", live_relation);
+				// console.log(is_last_child, "@@@@");
 
 				const allowed_levels = [];
 
@@ -156,7 +156,7 @@
 				hierarchy_analyzer_live.onRemoved(
 					init_payload,
 					init_index,
-					payloads.list
+					payloads_live.list
 				);
 
 				const compensation = direction < 0 ? 0 : -1;
@@ -164,8 +164,8 @@
 				payloads_live.splice(live_index, 0, holder_payload);
 				hierarchy_analyzer_live.onInserted(
 					init_payload,
-					live_index + compensation,
-					payloads.list
+					live_index,
+					payloads_live.list
 				);
 
 				$data.state.payloads = payloads_live;
@@ -181,19 +181,6 @@
 
 				if (isNotEmpty(live_index)) {
 					payloads.splice(live_index, 1, init_payload);
-
-					hierarchy_analyzer.onRemoved(
-						init_payload,
-						live_index,
-						payloads.list
-					);
-
-					hierarchy_analyzer.onInserted(
-						init_payload,
-						live_index,
-						payloads.list
-					);
-					data.set($data);
 				}
 
 				$thumb_data.state.item_type = EmptyComponent;

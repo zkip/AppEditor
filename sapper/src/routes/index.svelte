@@ -12,6 +12,6 @@
 <style>
 </style>
 
-<Outline {data} />
+<!-- <Outline {data} /> -->
 
 <span>{$data.state.payloads.list.length}</span>
