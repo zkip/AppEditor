@@ -38,9 +38,9 @@ export default () => {
 	const ha2 = hierarchy_analyzer.clone();
 	const payloads_locked = payloads.slice();
 
-	const Jip = { id: "090", level: 3, props: { name: "Jip" } };
-	payloads_locked.splice(3, 0, Jip);
-	const result = hierarchy_analyzer.onInserted([3], payloads_locked);
+	// const Jip = { id: "090", level: 5, props: { name: "Jip" } };
+	// payloads_locked.splice(8, 0, Jip);
+	// const result = hierarchy_analyzer.onInserted([8], payloads_locked);
 
 	// const Hufed = payloads_locked[2];
 	// console.log(Hufed, "===");
@@ -50,10 +50,17 @@ export default () => {
 	const culled = payloads_locked.splice(index, volume);
 	hierarchy_analyzer.onRemoved(culled);
 
-	payloads_locked.splice(index, 0, ...culled);
-	hierarchy_analyzer.onInserted([index, culled.length], payloads_locked);
+	const insert_index = 3;
+	payloads_locked.splice(insert_index, 0, ...culled);
+	const insert_results = hierarchy_analyzer.onInserted(
+		[insert_index, culled.length],
+		payloads_locked,
+		2
+	);
 
+	// console.log("####", result);
 	console.log("---------", results);
+	console.log("--insert results--", insert_results);
 	console.log(
 		// result,
 		// index,

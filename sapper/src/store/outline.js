@@ -1,5 +1,4 @@
 import Item from "@/components/Item";
-import { writable } from "svelte/store";
 
 import { config } from "@/components/Outline";
 

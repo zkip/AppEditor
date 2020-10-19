@@ -59,6 +59,13 @@
 
 			let live_index;
 
+			const volume = hierarchy_analyzer.getVolume(
+				init_index,
+				payloads_locked.list
+			);
+			const culled = payloads_locked.splice(init_index, volume);
+			hierarchy_analyzer_locked.onRemoved(culled);
+
 			const clean_move = listen("mousemove")(function DumpDDD({
 				clientX,
 				clientY,
@@ -78,7 +85,7 @@
 				live_index = inArrayBound(payloads.list)(live_index);
 
 				const prev_index = live_index - 1;
-				const next_index = live_index + 1;
+				const next_index = live_index;
 
 				const is_first = live_index === 0;
 				const is_last = live_index === payloads_live.list.length - 1;
@@ -119,7 +126,7 @@
 					if (is_last) {
 						maybe_level = prev_payload.level;
 					} else {
-						maybe_level = next_payload.level;
+						maybe_level = live_payload.level;
 					}
 				} else if (direction < 0) {
 					if (is_first) {
@@ -128,6 +135,8 @@
 							? prev_level + 1
 							: prev_level;
 					}
+				} else {
+					maybe_level = culled[0].level;
 				}
 
 				const allowed_jump = false;
@@ -138,7 +147,7 @@
 
 				const allowed_levels = [];
 
-				holder_payload.level = init_payload.level = maybe_level;
+				holder_payload.level = maybe_level;
 
 				const x = clientX - ix;
 				// const should_level = init_level + x / 20;
@@ -152,21 +161,16 @@
 				thumb_data.set($thumb_data);
 				thumb_offset = init_payload_node_position + dy;
 
-				payloads_live.splice(init_index, 1);
-				hierarchy_analyzer_live.onRemoved(
-					init_payload,
-					init_index,
-					payloads_live.list
-				);
-
 				const compensation = direction < 0 ? 0 : -1;
 
-				payloads_live.splice(live_index, 0, holder_payload);
-				hierarchy_analyzer_live.onInserted(
-					init_payload,
-					live_index,
-					payloads_live.list
+				payloads_live.splice(live_index, 0, ...culled);
+				const results = hierarchy_analyzer_live.onInserted(
+					[live_index, culled.length],
+					payloads_live.list,
+					maybe_level
 				);
+
+				// console.log(results, "@@");
 
 				$data.state.payloads = payloads_live;
 				$data.hierarchy_analyzer = hierarchy_analyzer_live;
