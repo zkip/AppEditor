@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from "svelte";
 
-	let i = 0;
+	export let i = 0;
 
 	onMount(() => {
 		setInterval(() => {
@@ -11,3 +11,4 @@
 </script>
 
 <div>count: {i}.</div>
+<div>ddd</div>
