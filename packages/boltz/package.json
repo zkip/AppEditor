@@ -6,7 +6,7 @@
 	"scripts": {
 		"build": "rollup -c",
 		"dev": "rollup -c -w",
-		"cy:open": "node ../../scripts/test",
+		"cy:open": "node ../../scripts/test:e2e",
 		"test": "jest"
 	},
 	"license": "MIT",
