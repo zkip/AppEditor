@@ -6,8 +6,7 @@
 	"scripts": {
 		"build": "rollup -c",
 		"dev": "rollup -c -w",
-		"cy:open": "node ../../scripts/test:e2e",
-		"test": "node ../../scripts/test:e2e"
+		"test": "node ../../scripts/test_e2e"
 	},
 	"license": "MIT",
 	"devDependencies": {
