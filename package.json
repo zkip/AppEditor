@@ -2,7 +2,9 @@
 	"name": "AppEditor",
 	"description": "TODO",
 	"version": "0.0.1",
-	"scripts": {},
+	"scripts": {
+		"test:utils": "cypress run"
+	},
 	"dependencies": {},
 	"devDependencies": {
 		"cypress": "^5.4.0"
