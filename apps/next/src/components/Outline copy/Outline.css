@@ -1,0 +1,24 @@
+.Outline {
+	/* border: 1px solid rebeccapurple; */
+	overflow: hidden;
+}
+
+.Outline .node {
+	/* border: 1px solid rosybrown; */
+	/* margin: 15px;
+	padding: 10px; */
+	overflow: hidden;
+}
+.Outline .node > * {
+	/* margin: 20px; */
+	/* margin-top: 5px; */
+	box-sizing: border-box;
+}
+
+.Outline .node .children {
+	/* padding: 5px; */
+	/* padding-left: 20px; */
+}
+.Outline .node .title {
+	border: 1px solid rebeccapurple;
+}
