@@ -1,0 +1,10 @@
+{
+	"name": "AppEditor",
+	"description": "TODO",
+	"version": "0.0.1",
+	"scripts": {},
+	"dependencies": {},
+	"devDependencies": {
+		"cypress": "^5.4.0"
+	}
+}
