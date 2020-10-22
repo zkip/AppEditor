@@ -10,12 +10,17 @@
 		"test": "../../scripts/test:e2e"
 	},
 	"dependencies": {
+		"antd": "^4.7.2",
 		"compression": "^1.7.1",
+		"parse-url": "^5.0.2",
 		"polka": "next",
+		"react": "^17.0.0",
+		"react-dom": "^17.0.0",
 		"sirv": "^1.0.0"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.0.0",
+		"@babel/plugin-proposal-class-properties": "^7.12.1",
 		"@babel/plugin-syntax-dynamic-import": "^7.0.0",
 		"@babel/plugin-transform-runtime": "^7.0.0",
 		"@babel/preset-env": "^7.12.1",

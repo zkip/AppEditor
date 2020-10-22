@@ -43,6 +43,7 @@ export default {
 			resolve({
 				browser: true,
 				dedupe: ["svelte"],
+				preferBuiltins: false,
 			}),
 			commonjs(),
 
@@ -60,6 +61,7 @@ export default {
 						],
 					],
 					plugins: [
+						"@babel/plugin-proposal-class-properties",
 						"@babel/plugin-syntax-dynamic-import",
 						[
 							"@babel/plugin-transform-runtime",
@@ -96,6 +98,7 @@ export default {
 			zResolve(zResolveOption),
 			resolve({
 				dedupe: ["svelte"],
+				preferBuiltins: false,
 			}),
 			commonjs(),
 		],

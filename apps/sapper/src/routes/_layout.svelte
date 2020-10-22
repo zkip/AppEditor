@@ -1,5 +1,6 @@
 <script>
 	import Nav from "../components/Nav.svelte";
+	import react from "react";
 
 	// export let segment;
 </script>
@@ -18,5 +19,5 @@
 <!-- <Nav {segment}/> -->
 
 <main>
-	<slot></slot>
+	<slot />
 </main>
