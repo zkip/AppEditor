@@ -1,6 +1,6 @@
-import EmptyComponent from "./Empty";
+import EmptyComponent from "../Empty";
 import { writable } from "svelte/store";
-import ArrayMapper from "$utils/ArrayMapper";
+import ArrayMapper from "$utils/indices/ArrayMapper";
 
 export function config({
 	state: { item_type = EmptyComponent, payloads = [] } = {},

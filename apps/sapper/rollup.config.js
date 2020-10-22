@@ -18,6 +18,13 @@ const onwarn = (warning, onwarn) =>
 		/[/\\]@sapper[/\\]/.test(warning.message)) ||
 	onwarn(warning);
 
+const zResolveOption = {
+	...preConfig.sapper,
+	variables: {
+		utils: "../../utils",
+	},
+};
+
 export default {
 	client: {
 		input: config.client.input(),
@@ -32,7 +39,7 @@ export default {
 				hydratable: true,
 				emitCss: true,
 			}),
-			zResolve(preConfig.sapper),
+			zResolve(zResolveOption),
 			resolve({
 				browser: true,
 				dedupe: ["svelte"],
@@ -86,7 +93,7 @@ export default {
 				hydratable: true,
 				dev,
 			}),
-			zResolve(preConfig.sapper),
+			zResolve(zResolveOption),
 			resolve({
 				dedupe: ["svelte"],
 			}),
@@ -104,7 +111,7 @@ export default {
 		input: config.serviceworker.input(),
 		output: config.serviceworker.output(),
 		plugins: [
-			zResolve(preConfig.sapper),
+			zResolve(zResolveOption),
 			resolve(),
 			replace({
 				"process.browser": true,

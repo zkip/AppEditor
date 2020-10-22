@@ -244,6 +244,8 @@ function define(inject_meta, module_def = noop, package_meta = { name: "" }) {
 	});
 
 	package_meta_m.set(package_path, package_meta);
+
+	console.log(package_m, "===");
 }
 
 function getGlobal() {
