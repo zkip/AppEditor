@@ -7,6 +7,7 @@ import { terser } from "rollup-plugin-terser";
 import config from "sapper/config/rollup.js";
 import pkg from "./package.json";
 import zResolve, { preConfig } from "@zrlps/rollup-plugin-resolve";
+import json from "@rollup/plugin-json";
 
 const mode = process.env.NODE_ENV;
 const dev = mode === "development";
@@ -39,6 +40,7 @@ export default {
 				hydratable: true,
 				emitCss: true,
 			}),
+			json(),
 			zResolve(zResolveOption),
 			resolve({
 				browser: true,
@@ -95,6 +97,7 @@ export default {
 				hydratable: true,
 				dev,
 			}),
+			json(),
 			zResolve(zResolveOption),
 			resolve({
 				dedupe: ["svelte"],
@@ -114,6 +117,7 @@ export default {
 		input: config.serviceworker.input(),
 		output: config.serviceworker.output(),
 		plugins: [
+			json(),
 			zResolve(zResolveOption),
 			resolve(),
 			replace({

@@ -10,8 +10,9 @@
 		"test": "../../scripts/test:e2e"
 	},
 	"dependencies": {
-		"antd": "^4.7.2",
+		"antd": "^4.7.3",
 		"compression": "^1.7.1",
+		"moment": "^2.29.1",
 		"parse-url": "^5.0.2",
 		"polka": "next",
 		"react": "^17.0.0",
@@ -28,6 +29,7 @@
 		"@cypress/webpack-preprocessor": "^5.4.6",
 		"@rollup/plugin-babel": "^5.0.0",
 		"@rollup/plugin-commonjs": "^14.0.0",
+		"@rollup/plugin-json": "^4.1.0",
 		"@rollup/plugin-node-resolve": "^8.0.0",
 		"@rollup/plugin-replace": "^2.2.0",
 		"@zrlps/rollup-plugin-resolve": "^0.1.4",
