@@ -7,36 +7,44 @@
 
 	let container, container_ant;
 
+	const case1 = async function start() {
+		await load("packages/antd");
+		const antd = getExport("antd");
+		console.log(antd);
+
+		const { Button, DatePicker } = antd;
+
+		const DatePickerRC = react.createElement(DatePicker);
+		reactDOM.render(DatePickerRC, container_ant);
+
+		listen("mousemove")(({ clientX, clientY }) => {
+			// const BoxRC = react.createElement(Box, {
+			// 	width: clientX,
+			// 	height: clientY,
+			// });
+			// reactDOM.render(BoxRC, container);
+			const ButtonRC = react.createElement(Button, {
+				children: [clientX, clientY].join("-"),
+				onClick: () => {
+					console.log("Yah.");
+				},
+			});
+			reactDOM.render(ButtonRC, container_ant);
+		});
+	};
+
+	const case2 = async function start() {
+		await load("packages/element-ui");
+		const element = getExports("packages/element-ui");
+		console.log(element, "===");
+	};
+
 	onMount(() => {
 		const host = document.querySelector("head");
 		setup(host);
 
-		async function start() {
-			await load("packages/antd");
-			const antd = getExport("antd");
-			console.log(antd);
-
-			const { Button, DatePicker } = antd;
-
-			const DatePickerRC = react.createElement(DatePicker);
-			reactDOM.render(DatePickerRC, container_ant);
-
-			listen("mousemove")(({ clientX, clientY }) => {
-				// const BoxRC = react.createElement(Box, {
-				// 	width: clientX,
-				// 	height: clientY,
-				// });
-				// reactDOM.render(BoxRC, container);
-				const ButtonRC = react.createElement(Button, {
-					children: [clientX, clientY].join("-"),
-					onClick: () => {
-						console.log("Yah.");
-					},
-				});
-				reactDOM.render(ButtonRC, container_ant);
-			});
-		}
-		start();
+		case2();
+		// case1();
 	});
 </script>
 

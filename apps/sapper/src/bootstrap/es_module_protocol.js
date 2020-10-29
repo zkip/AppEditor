@@ -15,7 +15,7 @@ export function resolvePackageFiles(url, meta = DEFAULT_PACKAGE_META) {
 	// }
 
 	return {
-		entry: "packages/antd/index.js",
-		style: "packages/antd/index.css",
+		entry: `${url}/index.js`,
+		style: `${url}/index.css`,
 	};
 }

@@ -14,6 +14,7 @@ import {
 } from "./live_module_protocol";
 import { resolvePackageFiles } from "./es_module_protocol";
 import test_package from "./test_package";
+import test_element_package from "./test_element_package";
 import moment from "moment";
 import reactDOM from "react-dom";
 
@@ -40,27 +41,29 @@ export async function load(module_url) {
 	const connection = { url: module_url };
 
 	const style_task = async () => {
-		const link = document.createElement("link");
-		function install() {
-			return new Promise((rv, rj) => {
-				link.href = style_url;
-				link.setAttribute("rel", "stylesheet");
-				link.onload = rv;
-				link.onerror = rj;
-				_host.appendChild(link);
-			});
-		}
-
-		const module_style_map = fallback(new Map())(
-			dom_module_style_m.get(package_path)
-		);
-		dom_module_style_m.set(package_path, module_style_map);
-		module_style_map.set(module_path, link);
-
-		await install();
+		// const link = document.createElement("link");
+		// function install() {
+		// 	return new Promise((rv, rj) => {
+		// 		link.href = style_url;
+		// 		link.setAttribute("rel", "stylesheet");
+		// 		link.onload = rv;
+		// 		link.onerror = rj;
+		// 		_host.appendChild(link);
+		// 	});
+		// }
+		// const module_style_map = fallback(new Map())(
+		// 	dom_module_style_m.get(package_path)
+		// );
+		// dom_module_style_m.set(package_path, module_style_map);
+		// module_style_map.set(module_path, link);
+		// try {
+		// 	// await install();
+		// } catch (err) {
+		// 	// console.log(err, "++++++++++");
+		// }
 	};
 	const meta = {
-		...test_package,
+		...test_element_package,
 	};
 
 	const script_task = async () => {
@@ -71,7 +74,7 @@ export async function load(module_url) {
 				const script = document.createElement("script");
 				const segment = `define(${JSON.stringify(
 					connection
-				)},function (exports,require){\n`;
+				)},function (exports,require,module){\n`;
 				const footer = `\n},${JSON.stringify(meta)})`;
 				const blob = new Blob([segment, response, footer], {
 					type: "text/javascript",
@@ -220,7 +223,14 @@ export function getExports(module_url = EMPTYSTRING) {
 	return [module_path, pkg.modules.get(module_path)];
 }
 
-function define(inject_meta, module_def = noop, package_meta = { name: "" }) {
+function define(
+	inject_meta,
+	module_def = noop,
+	module_inject,
+	package_meta = { name: "" }
+) {
+	console.log(module_inject, "===");
+
 	const exports = {};
 	const require = (module_name) => {
 		console.log(module_name, "================================;");

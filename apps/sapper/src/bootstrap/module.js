@@ -37,7 +37,6 @@ export async function load(module_url) {
 	const meta = { url: module_url };
 
 	const style_task = async () => {
-		console.log("===");
 		const link = document.createElement("link");
 		function install() {
 			return new Promise((rv, rj) => {
