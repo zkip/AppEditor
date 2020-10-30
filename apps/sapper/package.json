@@ -18,7 +18,8 @@
 		"polka": "next",
 		"react": "^17.0.0",
 		"react-dom": "^17.0.0",
-		"sirv": "^1.0.0"
+		"sirv": "^1.0.0",
+		"vue": "^2.6.12"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.0.0",

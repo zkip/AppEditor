@@ -1,9 +1,8 @@
 <script>
 	import { onMount } from "svelte";
 	import { getExport, getExports, load, setup } from "@/bootstrap/module_es";
-	import react from "react";
-	import reactDOM from "react-dom";
 	import { listen } from "$utils/fn";
+	import vue from "vue";
 
 	let container, container_ant;
 
@@ -34,9 +33,24 @@
 	};
 
 	const case2 = async function start() {
-		await load("packages/element-ui");
-		const element = getExports("packages/element-ui");
-		console.log(element, "===");
+		// await load("packages/element-ui");
+		// const element = getExports("packages/element-ui");
+		// console.log(element, "===");
+		const element = await import("element-ui");
+		const { Button } = element;
+		vue.component("Button", Button);
+		// Object.entries(element).map(([name, component]) =>
+		// 	vue.component(name, component)
+		// );
+		// const button = vue.createElement("Button");
+		const ins = new vue({
+			// propsData:
+			render: (h) => h("Button", "sdfs"),
+		});
+		ins.$slots.default = ["Text"];
+		console.log(ins, Button, "=====>");
+		ins.$mount(container);
+		// console.log({ vue }, "@@@@@@@@@@@@");
 	};
 
 	onMount(() => {

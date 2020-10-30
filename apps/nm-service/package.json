@@ -1,0 +1,23 @@
+{
+	"name": "nm-service",
+	"version": "1.0.0",
+	"main": "dist/index.js",
+	"license": "MIT",
+	"scripts": {
+		"build": "rollup -c",
+		"dev": "rollup -c -w"
+	},
+	"dependencies": {
+		"@rollup/plugin-commonjs": "^16.0.0",
+		"@rollup/plugin-node-resolve": "^10.0.0",
+		"@zrlps/rollup-plugin-resolve": "^0.1.4",
+		"acorn": "^8.0.4",
+		"element-ui": "^2.14.0",
+		"vue": "^2.6.12",
+		"vue-template-compiler": "^2.6.12"
+	},
+	"devDependencies": {
+		"rollup": "^2.32.1",
+		"rollup-plugin-vue": "^5.1.9"
+	}
+}
