@@ -17,6 +17,7 @@ import test_package from "./test_package";
 import test_element_package from "./test_element_package";
 import moment from "moment";
 import reactDOM from "react-dom";
+import vue from "vue";
 
 let _host;
 let ready = false;
@@ -240,6 +241,8 @@ function define(
 			return reactDOM;
 		} else if (module_name === "moment") {
 			return moment;
+		} else if (module_name === "vue") {
+			return vue;
 		}
 	};
 	module_def(exports, require);

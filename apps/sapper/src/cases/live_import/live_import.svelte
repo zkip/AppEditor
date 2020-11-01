@@ -6,6 +6,8 @@
 
 	let container, container_ant;
 
+	let package_name = "";
+
 	const case1 = async function start() {
 		await load("packages/antd");
 		const antd = getExport("antd");
@@ -33,10 +35,10 @@
 	};
 
 	const case2 = async function start() {
-		// await load("packages/element-ui");
-		// const element = getExports("packages/element-ui");
+		await load("packages/element-ui");
+		const element = getExports("packages/element-ui");
 		// console.log(element, "===");
-		const element = await import("element-ui");
+		// const element = await import("element-ui");
 		const { Button } = element;
 		vue.component("Button", Button);
 		// Object.entries(element).map(([name, component]) =>
@@ -60,6 +62,12 @@
 		case2();
 		// case1();
 	});
+
+	async function loadPackage() {
+		console.log(package_name, "+++++");
+		const pkg = await import(package_name);
+		console.log(pkg, "@@");
+	}
 </script>
 
 <style>
@@ -89,6 +97,10 @@
 	<div class="rule" />
 	<div class="ant" bind:this={container_ant} />
 	<div class="container" bind:this={container} />
+	<input
+		on:input={({ target }) => (package_name = target.value)}
+		type="text" />
+	<button on:click={loadPackage}>load</button>
 </div>
 
 <!-- <span>{$data.state.payloads.list.length}</span> -->
