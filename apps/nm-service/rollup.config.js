@@ -1,9 +1,10 @@
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import zResolve from "@zrlps/rollup-plugin-resolve";
-import vue from "rollup-plugin-vue";
+import json from "@rollup/plugin-json";
 
 import pkg from "./package.json";
+import debug from "./plugin-debug";
 
 export default {
 	input: "src/index.js",
@@ -12,19 +13,7 @@ export default {
 			intro: `const process = { env: { NODE_ENV: "production" } };`,
 			exports: "named",
 			file: pkg.main,
-			format: "umd",
-		},
-		// {
-		// 	intro: `const process = { env: { NODE_ENV: "production" } };`,
-		// 	exports: "named",
-		// 	file: "dist/element_rollup_compiled.js",
-		// 	format: "umd",
-		// },
-		{
-			intro: `const process = { env: { NODE_ENV: "production" } };`,
-			exports: "named",
-			name: "element",
-			file: "dist/element_rollup_compiled.js",
+			name: "elementxxx",
 			format: "umd",
 		},
 	],
@@ -32,8 +21,9 @@ export default {
 		commonjs({
 			include: "node_modules/**",
 		}),
+		debug(),
 		zResolve(),
 		resolve({ jsnext: true, browser: true }),
-		vue({ css: true }),
+		json(),
 	],
 };

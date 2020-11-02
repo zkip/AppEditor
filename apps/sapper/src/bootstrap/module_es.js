@@ -1,6 +1,5 @@
 import { tasks } from "$utils/async";
 import { xhr } from "$utils/xhr";
-import react from "react";
 import { firstInIter } from "$utils/array";
 import { fallback, noop } from "$utils/fn";
 import { deleteKeys, entries } from "$utils/object";
@@ -16,6 +15,7 @@ import { resolvePackageFiles } from "./es_module_protocol";
 import test_package from "./test_package";
 import test_element_package from "./test_element_package";
 import moment from "moment";
+import react from "react";
 import reactDOM from "react-dom";
 import vue from "vue";
 

@@ -3,6 +3,8 @@
 	import { getExport, getExports, load, setup } from "@/bootstrap/module_es";
 	import { listen } from "$utils/fn";
 	import vue from "vue";
+	import react from "react";
+	import reactDOM from "react-dom";
 
 	let container, container_ant;
 
@@ -55,11 +57,33 @@
 		// console.log({ vue }, "@@@@@@@@@@@@");
 	};
 
+	const case3 = async function () {
+		await load("packages/antdv");
+		const ant = getExports("packages/antdv");
+		console.log(ant, "===");
+		// const element = await import("element-ui");
+		// const { Button } = ant;
+		// vue.component("Button", Button);
+		// Object.entries(element).map(([name, component]) =>
+		// 	vue.component(name, component)
+		// );
+		// const button = vue.createElement("Button");
+		// const ins = new vue({
+		// 	// propsData:
+		// 	render: (h) => h("Button", "sdfs"),
+		// });
+		// ins.$slots.default = ["Text"];
+		// console.log(ins, Button, "=====>");
+		// ins.$mount(container);
+		// console.log({ vue }, "@@@@@@@@@@@@");
+	};
+
 	onMount(() => {
 		const host = document.querySelector("head");
 		setup(host);
 
-		case2();
+		case3();
+		// case2();
 		// case1();
 	});
 
