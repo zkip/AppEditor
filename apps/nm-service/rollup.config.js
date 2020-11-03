@@ -1,29 +1,32 @@
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
-import zResolve from "@zrlps/rollup-plugin-resolve";
+// import zResolve from "@zrlps/rollup-plugin-resolve";
 import json from "@rollup/plugin-json";
+import builtins from "builtin-modules";
 
 import pkg from "./package.json";
-import debug from "./plugin-debug";
+
+const pkg_externals = Object.keys(pkg.dependencies);
 
 export default {
 	input: "src/index.js",
-	output: [
-		{
-			intro: `const process = { env: { NODE_ENV: "production" } };`,
-			exports: "named",
-			file: pkg.main,
-			name: "elementxxx",
-			format: "umd",
-		},
-	],
+	output: {
+		exports: "named",
+		file: pkg.main,
+		format: "cjs",
+	},
+	external: [...builtins, ...pkg_externals],
 	plugins: [
 		commonjs({
-			include: "node_modules/**",
+			transformMixedEsModules: true,
+			// ignore: ["@yarnpkg/cli"],
 		}),
-		debug(),
-		zResolve(),
-		resolve({ jsnext: true, browser: true }),
+		// zResolve({
+		// 	variables: {
+		// 		workspace: "workspace",
+		// 	},
+		// }),
+		resolve({ preferBuiltins: true }),
 		json(),
 	],
 };

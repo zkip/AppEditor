@@ -1,14 +1,31 @@
-// import { BSON } from "bsonfy";
-// import rollup from "rollup";
-// import "@vue/compiler-sfc";
-// import "vue";
-import ant from "ant-design-vue";
-// import element from "element-ui";
+import { install, loadModule, transpile } from "./module_transpiler";
+import polka from "polka";
 
-// const ant = require("ant-design-vue");
+async function start() {
+	process.chdir("workspace");
+	try {
+		await install("element-ui");
+		await transpile("element-ui");
+	} catch (err) {
+		// throw Error(err.stderr);
+		console.error(err);
+	}
+	console.log("compeleted.");
+}
 
-// export * from "element-ui";
-
-console.log(ant, "+++++++++");
-
-// rollup();
+polka()
+	.get("/module/:name", async (req, res) => {
+		const { name = "" } = req.params;
+		if (name !== "") {
+			try {
+				const module = await loadModule(name);
+				module.pipe(res);
+			} catch (err) {
+				res.end("HH");
+			}
+		}
+	})
+	.listen(3006, (err) => {
+		if (err) throw err;
+		console.error("Server has started.");
+	});

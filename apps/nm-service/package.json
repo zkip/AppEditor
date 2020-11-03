@@ -14,17 +14,22 @@
 		"@rollup/plugin-json": "^4.1.0",
 		"@rollup/plugin-node-resolve": "^10.0.0",
 		"@vue/compiler-sfc": "^3.0.2",
+		"@yarnpkg/cli": "^2.3.3",
+		"@yarnpkg/core": "^2.3.1",
+		"@yelo/rollup-node-external": "^1.0.1",
 		"@zrlps/rollup-plugin-resolve": "^0.1.4",
 		"acorn": "^8.0.4",
 		"ant-design-vue": "^1.7.1",
 		"bsonfy": "^1.0.2",
+		"builtin-modules": "^3.1.0",
 		"element-ui": "^2.14.0",
+		"execa": "^4.1.0",
 		"polka": "^0.5.2",
-		"vue": "^2.6.12",
-		"vue-template-compiler": "^2.6.12"
-	},
-	"devDependencies": {
 		"rollup": "^2.32.1",
-		"rollup-plugin-vue": "^5.1.9"
-	}
+		"rollup-plugin-vue": "^5.1.9",
+		"vue": "^2.6.12",
+		"vue-template-compiler": "^2.6.12",
+		"yarn": "^1.22.10"
+	},
+	"devDependencies": {}
 }
