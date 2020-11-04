@@ -5,6 +5,8 @@
 	import vue from "vue";
 	import react from "react";
 	import reactDOM from "react-dom";
+	import { xhr } from "$utils/xhr";
+	import { BSON } from "bsonfy";
 
 	let container, container_ant;
 
@@ -78,11 +80,24 @@
 		// console.log({ vue }, "@@@@@@@@@@@@");
 	};
 
+	const case4 = async function () {
+		console.log("case4 starting...");
+		const { response, getResponseHeader } = await xhr.post(
+			"http://localhost:3006/module/element-ui"
+		);
+
+		const meta_raw = getResponseHeader("Package-Meta");
+		const meta = BSON.deserialize(meta_raw);
+
+		console.log(meta, meta_raw);
+	};
+
 	onMount(() => {
 		const host = document.querySelector("head");
 		setup(host);
 
-		case3();
+		case4();
+		// case3();
 		// case2();
 		// case1();
 	});

@@ -7,17 +7,17 @@ load<HTTPVerbs.Get> {
 	request {
 		header {
 			...
-			Package-Meta: <BSON>PackageMeta
 		}
 
-		body: name string
+		body: package_meta <BSON>PackageMeta
 	}
 
 	response {
 		header {
-			Packages-Part: <BSON>[]uint
-			Package-Meta: <BSON>[]ModuleMeta
+			Packages-Parts: uint[ (<BSON>PackageMeta).size, ...modules ]
 		}
+
+		body Content
 	}
 }
 
