@@ -24,6 +24,7 @@
 		"builtin-modules": "^3.1.0",
 		"element-ui": "^2.14.0",
 		"execa": "^4.1.0",
+		"js-base64": "^3.6.0",
 		"merge2": "^1.4.1",
 		"polka": "^0.5.2",
 		"rollup": "^2.32.1",

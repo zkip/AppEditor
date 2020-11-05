@@ -12,9 +12,11 @@
 	"dependencies": {
 		"ant-design-vue": "^1.7.1",
 		"antd": "^4.7.3",
+		"base-64": "^1.0.0",
 		"bsonfy": "^1.0.2",
 		"compression": "^1.7.1",
 		"element-ui": "^2.13.2",
+		"js-base64": "^3.6.0",
 		"moment": "^2.29.1",
 		"parse-url": "^5.0.2",
 		"polka": "next",

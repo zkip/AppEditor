@@ -56,26 +56,11 @@ export async function loadModule(module_name) {
 		const module = createReadStream(resolve(package_base, "index.js"));
 		module.on("error", rj);
 		module.on("ready", () => {
-			const package_meta = readFileSync(
-				resolve(package_base, "package.json")
-			);
-
-			const meta = new ReadStream();
-
-			const dependices = resolveExternals(package_meta);
-			// const dependence_streams = dependices.map((v) => v);
-
-			const parts = [meta, ...dependices, module].filter(Boolean);
-			const part_size_sequence = new Array(parts.length);
-
-			for (let i = 0; i < dependices.length; i++) {
-				const dep = dependices[i];
-				part_size_sequence[i] = getDepSize(dep);
-			}
+			const meta = readFileSync(resolve(package_base, "package.json"));
 
 			rv({
-				chunk: merge2(...parts),
-				parts: part_size_sequence,
+				meta,
+				module,
 			});
 		});
 	});

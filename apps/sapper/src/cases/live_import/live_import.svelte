@@ -7,6 +7,7 @@
 	import reactDOM from "react-dom";
 	import { xhr } from "$utils/xhr";
 	import { BSON } from "bsonfy";
+	import { Base64 } from "js-base64";
 
 	let container, container_ant;
 
@@ -87,9 +88,8 @@
 		);
 
 		const meta_raw = getResponseHeader("Package-Meta");
-		const meta = BSON.deserialize(meta_raw);
-
-		console.log(meta, meta_raw);
+		const meta_decoded = Base64.decode(meta_raw);
+		const meta = JSON.parse(meta_decoded);
 	};
 
 	onMount(() => {
