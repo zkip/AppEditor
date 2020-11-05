@@ -5,6 +5,7 @@ import {
 	existsSync,
 	mkdirSync,
 	readFileSync,
+	ReadStream,
 } from "fs";
 import { rollup } from "rollup";
 import package_rollup_confjg from "../workspace/rollup.config.js";
@@ -59,7 +60,7 @@ export async function loadModule(module_name) {
 				resolve(package_base, "package.json")
 			);
 
-			// const meta = createReadStream(,);
+			const meta = new ReadStream();
 
 			const dependices = resolveExternals(package_meta);
 			// const dependence_streams = dependices.map((v) => v);

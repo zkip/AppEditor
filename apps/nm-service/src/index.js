@@ -11,7 +11,7 @@ import http from "http";
 import stream, { Duplex, Readable, Writable } from "stream";
 import { stdout } from "process";
 import zlib from "zlib";
-import { createFullyStream } from "./streams";
+import { createDepleteStream } from "./streams";
 
 // async function start() {
 // 	process.chdir("workspace");
@@ -60,29 +60,8 @@ import { createFullyStream } from "./streams";
 // 		console.error("Server has started.");
 // 	});
 
-// const fullyStream = createFullyStream(Buffer.from("Hello"));
+const fullyStream = createDepleteStream(Buffer.from("Hello!"));
+const stepedStream = createDepleteStream(Buffer.from("Hello"), { step: 2 });
 
-// console.log(
-// 	Buffer.from("Hello")
-// 		.slice(0, 1)
-// 		.toString(),
-// 	"@@@@@@@"
-// );
-// fullyStream.pipe(stdout);
-
-// console.log(fullyStream.read(2).toString());
-
-// console.log(fullyStream, "===");
-
-async function start() {
-	const ff = createReadStream("./test.js");
-	ff.resume();
-	console.log(ff.read(2));
-	// ff.on("data", (data) => {
-	// 	console.log(data.toString());
-	// });
-}
-
-start();
-
-// ff.pipe(stdout);
+// console.log(fullyStream.read());
+fullyStream.pipe(process.stdout);

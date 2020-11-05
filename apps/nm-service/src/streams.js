@@ -1,22 +1,36 @@
 import { Readable } from "stream";
-export function createFullyStream(buffers, options) {
-	return new FullyStream(buffers, options);
-}
-
-export class FullyStream extends Readable {
-	constructor(buffers, options) {
+export class StepedStream extends Readable {
+	constructor(buffers, { step = 1, ...options } = {}) {
 		super(options);
-		this.count = buffers.length;
+		this.position = 0;
 		this.buffers = buffers;
+		this.step = step;
 	}
 
-	_read(size) {
-		console.log(this.buffers.length, size, "----------------");
-		// if (this.count > 0) {
-		this.push(this.buffers.slice(0, 1000000));
-		// this.count -= this.buffers.length;
+	_read() {
+		if (this.position++ < 10) {
+			this.push("Xx");
+		}
+
+		// // const end = this.position + this.step;
+		// if (end <= this.buffers.length) {
+		// 	this.push(this.buffers.slice(this.position, end));
+		// 	this.position = end;
 		// } else {
 		// 	this.push(null);
 		// }
 	}
+}
+export class DepleteStream extends StepedStream {
+	constructor(buffers, options) {
+		super(buffers, { step: buffers.length, ...options });
+	}
+}
+
+export function createDepleteStream(buffers, options) {
+	return new DepleteStream(buffers, options);
+}
+
+export function createStepedStream(buffers, options) {
+	return new StepedStream(buffers, options);
 }
