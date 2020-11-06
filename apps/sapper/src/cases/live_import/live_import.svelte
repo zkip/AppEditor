@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from "svelte";
-	import { getExport, getExports, load, setup } from "@/bootstrap/module_es";
+	import { getExport, getExports, load, setup } from "@/bootstrap/module_umd";
 	import { listen } from "$utils/fn";
 	import vue from "vue";
 	import react from "react";
@@ -83,13 +83,22 @@
 
 	const case4 = async function () {
 		console.log("case4 starting...");
-		const { response, getResponseHeader } = await xhr.post(
-			"http://localhost:3006/module/element-ui"
-		);
+		await load("element-ui", "http://localhost:3006");
+		const { Card } = getExports("element-ui");
 
-		const meta_raw = getResponseHeader("Package-Meta");
-		const meta_decoded = Base64.decode(meta_raw);
-		const meta = JSON.parse(meta_decoded);
+		vue.component("Card", Card);
+		const ins = new vue({
+			// propsData:
+			render: (h) =>
+				h("Card", [
+					"SDF",
+					h("div", { slot: "header" }, "header"),
+					"Jackie",
+				]),
+		});
+		ins.$mount(container);
+
+		console.log(Card);
 	};
 
 	onMount(() => {

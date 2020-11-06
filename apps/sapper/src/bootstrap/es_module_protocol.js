@@ -19,3 +19,21 @@ export function resolvePackageFiles(url, meta = DEFAULT_PACKAGE_META) {
 		style: `${url}/index.css`,
 	};
 }
+
+export class Package {
+	name = "";
+	modules = new Map(); // { Module.name: Module }
+}
+
+export class Module extends Map {
+	name = "";
+}
+
+export class Node {
+	name = "";
+	host = "";
+	packages = new Map(); // { Package.name: Package }
+	constructor(host) {
+		this.host = host;
+	}
+}

@@ -8,6 +8,7 @@ import polka from "polka";
 import { BSON } from "bsonfy";
 import fs, { createWriteStream, createReadStream } from "fs";
 import http from "http";
+import http2 from "http2";
 import stream, { Duplex, Readable, Writable } from "stream";
 import { stdout } from "process";
 import zlib from "zlib";
@@ -15,9 +16,8 @@ import { createDepleteStream } from "./streams";
 import { Base64 } from "js-base64";
 
 // async function start() {
-// 	process.chdir("workspace");
 // 	try {
-// 		await install("element-ui");
+// 		// await install("element-ui");
 // 		await transpile("element-ui");
 // 	} catch (err) {
 // 		// throw Error(err.stderr);
@@ -26,7 +26,20 @@ import { Base64 } from "js-base64";
 // 	console.log("compeleted.");
 // }
 
-polka()
+// start();
+
+function push(stream, filepath) {
+	// stream.push
+}
+
+// const server = http2.createSecureServer({
+// 	key: fs.readFileSync("localhost.key"),
+// 	cert: fs.readFileSync("localhost.crt"),
+// });
+
+const server = http.createServer();
+
+polka({ server })
 	.use((req, res, next) => {
 		res.setHeader("Access-Control-Allow-Origin", "*");
 		res.setHeader(
@@ -35,12 +48,17 @@ polka()
 		);
 		next();
 	})
+	.get("/assets/*", async (req, res) => {
+		const path = req.path.replace(/\/assets\//, "");
+		console.log(path, "-----------");
+		const stream = fs.createReadStream(`workspace/packages/${path}`);
+		stream.pipe(res);
+	})
 	.post("/module/:name", async (req, res) => {
 		const { name = "" } = req.params;
-		console.log(name, "======");
+		console.log(name, "requiring...");
 		try {
-			const { meta, module } = await loadModule(name);
-			// console.log(meta, module, "<<<<<<<");
+			const { meta, module, assets } = await loadModule(name);
 			res.setHeader("Package-Meta", Base64.encode(meta));
 			module.pipe(res);
 		} catch (err) {

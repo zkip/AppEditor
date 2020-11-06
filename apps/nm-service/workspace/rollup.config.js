@@ -4,10 +4,12 @@ import commonjs from "@rollup/plugin-commonjs";
 
 import debug from "./plugin-debug";
 
+const workbase = process.cwd();
+
 const bootstrap = (module_name) => {
 	const template = `
 		export * from "${module_name}";
-		// export { default } from "${module_name}";
+		export { default } from "${module_name}";
 	`;
 	return {
 		name: "bootstrap",
@@ -26,12 +28,12 @@ const bootstrap = (module_name) => {
 	};
 };
 
-export default ({ module_name }) => ({
+export default ({ module_name, filename = module_name }) => ({
 	input: "#",
 	output: {
 		intro: `const process = { env: { NODE_ENV: "production" } };`,
 		exports: "named",
-		file: `./packages/${module_name}/index.js`,
+		file: `${workbase}/workspace/packages/${filename}/index.js`,
 		name: "bundle1",
 		format: "umd",
 	},

@@ -68038,10 +68038,7 @@
 	/******/ ])["default"];
 	});
 
-	var elementUi_common$1 = /*@__PURE__*/getDefaultExportFromCjs(elementUi_common);
-
 	exports.__moduleExports = elementUi_common;
-	exports.default = elementUi_common$1;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

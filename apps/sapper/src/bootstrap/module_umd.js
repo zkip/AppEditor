@@ -4,79 +4,74 @@ import { firstInIter } from "$utils/array";
 import { fallback, noop } from "$utils/fn";
 import { deleteKeys, entries } from "$utils/object";
 import { EMPTYSTRING } from "$utils/string";
-import {
-	getLivePackageModulePath,
-	isValidLivePackageURL,
-	Module,
-	Package,
-	resolveLivePackageFiles,
-} from "./live_module_protocol";
-import { resolvePackageFiles } from "./es_module_protocol";
+import { Node, Meta, Module, Package } from "./umd_module_protocol";
 import test_package from "./test_package";
 import test_element_package from "./test_element_package";
 import moment from "moment";
 import react from "react";
 import reactDOM from "react-dom";
 import vue from "vue";
+import { Base64 } from "js-base64";
+import { isNotEmpty, isEmpty } from "$utils/asserts";
 
 let _host;
 let ready = false;
 
-const package_m = new Map();
+/**
+ * type Node like Map{ Package.name: Package }
+ */
+
+const package_name_host_m = new Map(); // { Package.name: Set<Node.host> }
+const node_host_m = new Map(); // { Node.host: Node }
 const package_meta_m = new Map();
+const exports_package_m = new Map(); // { Export.name: Set<Package> }
 const dom_module_style_m = new Map(); // { Package.name: { Module.name: style_dom } }
 const export_module = new Map(); // { Component.name: Map< [ Package.name ], [ Module.name ] > }
 
-export async function load(module_url) {
+export async function load(package_name, host) {
 	if (!ready) throw Error("It's not ready yet.");
 
-	if (!isValidLivePackageURL(module_url)) {
-		throw Error(`"${module_url}" is a invalid live-package-url.`);
-	}
+	const url = [host, "module", package_name].join("/");
+	const { response, getResponseHeader } = await xhr.post(url);
 
-	let { entry: entry_url, style: style_url } = resolvePackageFiles(
-		module_url
-	);
-	const [package_path, module_path] = splitLivePackagePath(module_url);
+	const pkg_raw = getResponseHeader("Package-Meta");
+	const pkg_decoded = Base64.decode(pkg_raw);
+	const pkg_info = JSON.parse(pkg_decoded);
 
-	const connection = { url: module_url };
+	const meta = { package_info: pkg_info, host };
 
 	const style_task = async () => {
-		// const link = document.createElement("link");
-		// function install() {
-		// 	return new Promise((rv, rj) => {
-		// 		link.href = style_url;
-		// 		link.setAttribute("rel", "stylesheet");
-		// 		link.onload = rv;
-		// 		link.onerror = rj;
-		// 		_host.appendChild(link);
-		// 	});
-		// }
+		const style_url = `${host}/assets/${package_name}/index.css`;
+		const link = document.createElement("link");
+		function install() {
+			return new Promise((rv, rj) => {
+				link.href = style_url;
+				link.setAttribute("rel", "stylesheet");
+				link.onload = rv;
+				link.onerror = rj;
+				_host.appendChild(link);
+			});
+		}
 		// const module_style_map = fallback(new Map())(
 		// 	dom_module_style_m.get(package_path)
 		// );
 		// dom_module_style_m.set(package_path, module_style_map);
 		// module_style_map.set(module_path, link);
-		// try {
-		// 	// await install();
-		// } catch (err) {
-		// 	// console.log(err, "++++++++++");
-		// }
-	};
-	const meta = {
-		...test_element_package,
+		try {
+			await install();
+		} catch (err) {
+			console.log(err, "++++++++++");
+		}
 	};
 
 	const script_task = async () => {
-		const { response } = await xhr.get(entry_url);
-
 		function install() {
 			return new Promise((rv, rj) => {
 				const script = document.createElement("script");
 				const segment = `define(${JSON.stringify(
-					connection
+					meta
 				)},function (exports,require,module){\n`;
-				const footer = `\n},${JSON.stringify(meta)})`;
+				const footer = `\n})`;
 				const blob = new Blob([segment, response, footer], {
 					type: "text/javascript",
 				});
@@ -123,7 +118,7 @@ export function getExport(name = EMPTYSTRING, module_url = EMPTYSTRING) {
 	if (module_url !== EMPTYSTRING) {
 		const [package_path, module_path] = splitLivePackagePath(module_path);
 
-		const pkg = package_m.get(package_path);
+		const pkg = node_host_m.get(package_path);
 		const module = pkg.modules.get(module_path);
 		if (name !== EMPTYSTRING) {
 			if (module.has(name)) {
@@ -162,7 +157,7 @@ export function getExport(name = EMPTYSTRING, module_url = EMPTYSTRING) {
 		}
 
 		if (is_default_export) {
-			const pkg = package_m.get(package_path_found);
+			const pkg = node_host_m.get(package_path_found);
 			const module = pkg.modules.get(module_path_found);
 			if (module.has("default")) {
 				return module.get("default");
@@ -179,7 +174,7 @@ export function getExport(name = EMPTYSTRING, module_url = EMPTYSTRING) {
 			const [package_path, module_path] = firstInIter(
 				package_module_map_list
 			);
-			const pkg = package_m.get(package_path);
+			const pkg = node_host_m.get(package_path);
 			const module = pkg.modules.get(module_path);
 			if (module.has(name)) {
 				return module.get(name);
@@ -194,7 +189,7 @@ export function getExport(name = EMPTYSTRING, module_url = EMPTYSTRING) {
 
 export function dropModule(module_url = EMPTYSTRING) {
 	const [package_path, _] = splitLivePackagePath(module_url);
-	const pkg = package_m.get(package_path);
+	const pkg = node_host_m.get(package_path);
 
 	for (const [_, module] of pkg.modules) {
 		for (const [export_name] of module) {
@@ -207,7 +202,7 @@ export function dropModule(module_url = EMPTYSTRING) {
 		}
 	}
 
-	package_m.delete(package_path);
+	node_host_m.delete(package_path);
 	package_meta_m.delete(package_path);
 
 	for (const [_, module_style_map] of dom_module_style_m) {
@@ -218,59 +213,59 @@ export function dropModule(module_url = EMPTYSTRING) {
 	dom_module_style_m.delete(package_path);
 }
 
-export function getExports(module_url = EMPTYSTRING) {
-	const [package_path, module_path] = splitLivePackagePath(module_url);
-	const pkg = package_m.get(package_path);
-	return [module_path, pkg.modules.get(module_path)];
+export function getExports(package_name = "", host = "") {
+	if (host === "") {
+		if (package_name_host_m.has(package_name)) {
+			const hosts = package_name_host_m.get(package_name);
+			if (hosts.size === 1) {
+				host = hosts.values().next().value;
+			}
+		} else {
+			// node not found
+		}
+	}
+
+	return node_host_m
+		.get(host)
+		.packages.get(package_name)
+		.modules.get("default");
 }
 
-function define(
-	inject_meta,
-	module_def = noop,
-	module_inject,
-	package_meta = { name: "" }
-) {
-	console.log(module_inject, "===");
+function define(inject_meta, module_def = noop) {
+	const { package_info, host } = inject_meta;
+
+	const package_name = package_info.name;
 
 	const exports = {};
 	const require = (module_name) => {
-		console.log(module_name, "================================;");
-		if (module_name === "react") {
-			return react;
-		} else if (module_name === "react-dom") {
-			return reactDOM;
-		} else if (module_name === "moment") {
-			return moment;
-		} else if (module_name === "vue") {
-			return vue;
-		}
+		console.log(module_name, "requring...");
 	};
-	module_def(exports, require);
+	module_def(exports, require, {});
 
-	const [package_path, module_path] = getLivePackageModulePath(
-		inject_meta.url
-	);
-	const module = new Module();
-	const pkg = new Package();
-	package_m.set(package_path, pkg);
-	pkg.modules.set(module_path, module);
+	const node = fallback(new Node(host))(node_host_m.get(host));
+	const module = {};
+	const pkg = new Package(package_info);
+	const hosts = fallback(new Set())(package_name_host_m.get(package_name));
 
-	// map exports and module
-	entries(exports)(([key, value]) => {
-		if (key === "default") {
-			key = package_meta.name;
-		}
-		const module_package_map_list = fallback(new Map())(
-			export_module.get(key)
-		);
-		export_module.set(key, module_package_map_list);
-		module_package_map_list.set(package_path, module_path);
-		module.set(key, value);
+	pkg.modules.set("default", module);
+	node_host_m.set(host, node);
+	node.packages.set(package_name, pkg);
+
+	hosts.add(host);
+	package_name_host_m.set(package_name, hosts);
+
+	entries({
+		...exports.__moduleExports,
+		default: exports.default,
+	})(([name, exported]) => {
+		if (isEmpty(exported)) return;
+		module[name] = exported;
+
+		if (name === "default") return;
+		const packages = fallback(new Set())(exports_package_m.get(name));
+		packages.add(pkg);
+		exports_package_m.set(name, packages);
 	});
-
-	package_meta_m.set(package_path, package_meta);
-
-	console.log(package_m, "===");
 }
 
 function getGlobal() {
