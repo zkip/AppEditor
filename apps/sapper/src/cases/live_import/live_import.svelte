@@ -8,10 +8,14 @@
 	import { xhr } from "$utils/xhr";
 	import { BSON } from "bsonfy";
 	import { Base64 } from "js-base64";
+	import VueComponent from "@/components/VueComponent";
+	import { writable } from "svelte/store";
 
 	let container, container_ant;
 
 	let package_name = "";
+
+	let shadow = "never";
 
 	const case1 = async function start() {
 		await load("packages/antd");
@@ -88,27 +92,59 @@
 
 		vue.component("Card", Card);
 		const ins = new vue({
-			// propsData:
-			render: (h) =>
-				h("Card", [
-					"SDF",
-					h("div", { slot: "header" }, "header"),
-					"Jackie",
-				]),
+			data: {
+				props: {
+					shadow: "always",
+					j: 0,
+				},
+			},
+			render(h) {
+				const v = this.$data.props.j;
+				return h(
+					"Card",
+					{
+						props: {
+							...this.$data.props,
+						},
+					},
+					[
+						`SDF${v}`,
+						h("div", { slot: "header" }, "header"),
+						"Jackie",
+					]
+				);
+			},
 		});
 		ins.$mount(container);
+		ins.$el.classList.add("container");
+		ins.$data.props.j = 344;
 
-		console.log(Card);
+		setInterval(() => {
+			ins.$data.props.j++;
+		}, 100);
+
+		ins.$data.props.shadow = "hover";
+
+		console.log(ins);
+	};
+
+	const case5 = async function () {
+		console.log("case5 starting...");
 	};
 
 	onMount(() => {
-		const host = document.querySelector("head");
-		setup(host);
+		// const host = document.querySelector("head");
+		// setup(host);
 
-		case4();
+		// case5();
+		// case4();
 		// case3();
 		// case2();
 		// case1();
+
+		addEventListener("click", () => {
+			shadow = shadow === "always" ? "never" : "always";
+		});
 	});
 
 	async function loadPackage() {
@@ -139,6 +175,14 @@
 		display: grid;
 		place-content: center;
 	}
+
+	:global(.container) {
+		margin: 1em;
+	}
+
+	.VueComponent {
+		padding: 1em;
+	}
 </style>
 
 <div class="box">
@@ -149,6 +193,12 @@
 		on:input={({ target }) => (package_name = target.value)}
 		type="text" />
 	<button on:click={loadPackage}>load</button>
+</div>
+<div class="VueComponent">
+	<VueComponent props={{ shadow }}>
+		<div slot="header">Header</div>
+		<div>Body</div>
+	</VueComponent>
 </div>
 
 <!-- <span>{$data.state.payloads.list.length}</span> -->
