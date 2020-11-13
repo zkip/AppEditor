@@ -10,6 +10,8 @@
 	export let module_name = "element-ui";
 	export let exported = "Card";
 
+	let default_slot;
+
 	let component;
 	let instance;
 
@@ -26,6 +28,18 @@
 		}
 	}
 
+	let slots = $$props.$$slots;
+	let children = slots && accessChildren();
+
+	function accessChildren() {
+		return Object.entries(slots).reduce((r, [slot_name, slots_setup]) => {
+			slots_setup.map((setup) => {
+				r.push({ instance: setup($$props.$$scope), slot: slot_name });
+			});
+			return r;
+		}, []);
+	}
+
 	if (!is_server) {
 		const host = document.querySelector("head");
 		setup(host);
@@ -33,8 +47,6 @@
 			getExported();
 		});
 	}
-
-	console.log($$slots);
 
 	beforeUpdate(async () => {
 		console.log(root, "+++++++++++++++", is_server);
@@ -65,12 +77,31 @@
 				},
 			},
 			render(h) {
+				console.log("----------", slots, children);
+				const children_processed = children.map(
+					({ instance, slot }) => {
+						instance.c();
+						// const frag = document.createDocumentFragment();
+						instance.m(null, frag);
+						// console.log(frag, "--");
+						// console.log(frag, slot, "=============");
+						// const s = instance.m();
+						// console.log(instance, slot, "@@@@@@@", s);
+						// return {};
+						// return h(() => document.createElement("h1"), {
+						// 	slot,
+						// });
+						// return frag;
+						return instance;
+					}
+				);
+				console.log(children_processed, "@@@@@@@@@@@;");
 				return h(
 					name,
 					{
 						props: { ...this.$data.props },
 					},
-					["SDF", this.$data.data.time]
+					[...children_processed]
 				);
 			},
 		});
@@ -81,6 +112,7 @@
 		// 	instance.$data.data.time++;
 		// }, 100);
 	}
+	console.log($$props, "===============");
 
 	onMount(async () => {
 		await load_process;
@@ -89,3 +121,5 @@
 </script>
 
 <div bind:this={root} />
+
+<!-- <slot bind:this={default_slot} /> -->
