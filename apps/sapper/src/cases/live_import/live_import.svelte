@@ -132,25 +132,32 @@
 		console.log("case5 starting...");
 	};
 
+	let count = 0;
+
 	onMount(() => {
 		// const host = document.querySelector("head");
 		// setup(host);
-
 		// case5();
 		// case4();
 		// case3();
 		// case2();
 		// case1();
-
-		addEventListener("click", () => {
-			shadow = shadow === "always" ? "never" : "always";
-		});
+		// addEventListener("click", () => {
+		// 	shadow = shadow === "always" ? "never" : "always";
+		// });
+		// setInterval(() => {
+		// 	count++;
+		// }, 1000);
 	});
 
 	async function loadPackage() {
 		console.log(package_name, "+++++");
 		const pkg = await import(package_name);
 		console.log(pkg, "@@");
+	}
+
+	function onOptionChanged(e) {
+		shadow = e.target.value;
 	}
 </script>
 
@@ -195,10 +202,43 @@
 	<button on:click={loadPackage}>load</button>
 </div>
 <div class="VueComponent">
+	<span>{shadow},{count}</span>
 	<VueComponent props={{ shadow }}>
-		<div slot="header">Header</div>
-		<div>Body</div>
+		<div slot="header">
+			<span>{shadow},{count}</span>
+			{#if shadow !== 'never'}
+				<div>Header</div>
+				<div>Header</div>
+			{/if}
+		</div>
+		<span slot="header">Body1</span>
+		<span slot="header">Body2</span>
+		<div>
+			<span>Body</span>
+			<VueComponent props={{ shadow }}>
+				<div>Body3</div>
+			</VueComponent>
+		</div>
 	</VueComponent>
+	<!-- <VueComponent props={{ shadow }}>
+		<div>Body3</div>
+	</VueComponent>
+	<VueComponent props={{ shadow }}>
+		<div>Body3</div>
+	</VueComponent>
+	<VueComponent props={{ shadow }}>
+		<div>Body3</div>
+	</VueComponent>
+	<VueComponent props={{ shadow }}>
+		<div>Body3</div>
+	</VueComponent> -->
+</div>
+<div>
+	<select name="" id="" on:input={onOptionChanged}>
+		<option value="never">never</option>
+		<option value="always">always</option>
+		<option value="hover">hover</option>
+	</select>
 </div>
 
 <!-- <span>{$data.state.payloads.list.length}</span> -->

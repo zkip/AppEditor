@@ -28,9 +28,24 @@ const exports_package_m = new Map(); // { Export.name: Set<Package> }
 const dom_module_style_m = new Map(); // { Package.name: { Module.name: style_dom } }
 const export_module = new Map(); // { Component.name: Map< [ Package.name ], [ Module.name ] > }
 
+const fetching_process = {}; // { Package.name: bool isFetching }
+const resolved_package = {}; // { Package.name: bool isResolved }
+
 export async function load(package_name, host) {
 	if (!ready) throw Error("It's not ready yet.");
 
+	const package_process = fetching_process[package_name];
+
+	if (!!package_process) {
+		return await package_process;
+	} else {
+		const package_process = fetchPackage(package_name, host);
+		fetching_process[package_name] = package_process;
+		return await package_process;
+	}
+}
+
+async function fetchPackage(package_name, host) {
 	const url = [host, "module", package_name].join("/");
 	const { response, getResponseHeader } = await xhr.post(url);
 
