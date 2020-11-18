@@ -386,6 +386,7 @@ function init(
 	let ready = false;
 	$$.ctx = instance
 		? instance(component, prop_values, (i, ret, ...rest) => {
+				// console.log(component, i, $$.ctx, "++++");
 				const value = rest.length ? rest[0] : ret;
 				if ($$.ctx && not_equal($$.ctx[i], ($$.ctx[i] = value))) {
 					if (!$$.skip_bound && $$.bound[i]) $$.bound[i](value);

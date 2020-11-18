@@ -10,6 +10,8 @@
 	const title = "Simple title.";
 	let timestamp = Date.now();
 
+	console.log($$props, "@@@@");
+
 	setInterval(() => {
 		timestamp = Date.now();
 	}, 1000);
@@ -17,5 +19,6 @@
 
 <span>{timestamp}</span>
 <SimpleComponent>
-	<div slot="title">{title},{timestamp}</div>
+	<div slot="title">{timestamp}</div>
+	<div slot="jump">{timestamp}</div>
 </SimpleComponent>

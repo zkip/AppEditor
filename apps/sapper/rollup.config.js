@@ -8,6 +8,7 @@ import config from "sapper/config/rollup.js";
 import pkg from "./package.json";
 import zResolve, { preConfig } from "@zrlps/rollup-plugin-resolve";
 import json from "@rollup/plugin-json";
+import jsx from "rollup-plugin-jsx";
 
 const mode = process.env.NODE_ENV;
 const dev = mode === "development";
@@ -24,6 +25,7 @@ const zResolveOption = {
 	variables: {
 		utils: "../../utils",
 	},
+	candidateExt: ["svelte", "jsx"],
 };
 
 export default {
@@ -35,6 +37,7 @@ export default {
 				"process.browser": true,
 				"process.env.NODE_ENV": JSON.stringify(mode),
 			}),
+			// jsx({ factory: "react.createElement" }),
 			svelte({
 				dev,
 				hydratable: true,
@@ -92,6 +95,7 @@ export default {
 				"process.browser": false,
 				"process.env.NODE_ENV": JSON.stringify(mode),
 			}),
+			// jsx({ factory: "react.createElement" }),
 			svelte({
 				generate: "ssr",
 				hydratable: true,
@@ -118,6 +122,7 @@ export default {
 		output: config.serviceworker.output(),
 		plugins: [
 			json(),
+			// jsx({ factory: "react.createElement" }),
 			zResolve(zResolveOption),
 			resolve(),
 			replace({

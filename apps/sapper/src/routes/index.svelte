@@ -3,6 +3,5 @@
 	import Adapter from "@/cases/adapter";
 </script>
 
-<!-- <div>SDF</div> -->
 <!-- <LiveImport /> -->
 <Adapter />
