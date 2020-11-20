@@ -20,5 +20,5 @@
 <span>{timestamp}</span>
 <SimpleComponent>
 	<div slot="title">{timestamp}</div>
-	<div slot="jump">{timestamp}</div>
+	<div slot="jump">{timestamp + 'jump'}</div>
 </SimpleComponent>

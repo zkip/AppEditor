@@ -2,8 +2,6 @@
 	import {
 		beforeUpdate,
 		create_slot,
-		current_component,
-		dirty_components,
 		get_current_component,
 		is_client,
 		onMount,
@@ -36,16 +34,16 @@
 	});
 
 	beforeUpdate(() => {
-		console.log(props, "ccc", get_current_component().$$);
 		const current = get_current_component();
+		const dirty = -1;
 		if (title_slot) {
-			if (title_slot.p && 1 & 1) {
+			if (title_slot.p && 1 & dirty) {
 				update_slot(
 					title_slot,
 					title_slot_template,
-					props,
 					current.$$.ctx,
-					1,
+					current.$$.ctx[1],
+					dirty,
 					(dirty) => ({}),
 					(ctx) => ({})
 				);
@@ -58,5 +56,5 @@
 	<div class="title" bind:this={title_ref} />
 	<!-- <div class="title" /> -->
 	<!-- <slot name="title" /> -->
-	<!-- <slot name="jump" /> -->
+	<slot name="jump" />
 </div>
