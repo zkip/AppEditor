@@ -37,6 +37,7 @@
 		const current = get_current_component();
 		const dirty = -1;
 		if (title_slot) {
+			console.log(current.$$, "-------<<<<<<<");
 			if (title_slot.p && 1 & dirty) {
 				update_slot(
 					title_slot,
@@ -56,5 +57,5 @@
 	<div class="title" bind:this={title_ref} />
 	<!-- <div class="title" /> -->
 	<!-- <slot name="title" /> -->
-	<slot name="jump" />
+	<!-- <slot name="jump" /> -->
 </div>
