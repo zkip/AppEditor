@@ -5,12 +5,11 @@
 	// const result = compile(source);
 	// console.log(result, "@@@", VERSION);
 	// console.log(result.js.code);
-	import SimpleComponent from "./SimpleComponent";
+	import SimpleComponent from "./SimpleComponent_v2";
+	import { bind, get_current_component, is_client } from "svelte/internal";
 
 	const title = "Simple title.";
 	let timestamp = Date.now();
-
-	console.log($$props, "@@@@");
 
 	setInterval(() => {
 		timestamp = Date.now();
