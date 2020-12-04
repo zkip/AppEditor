@@ -1,3 +1,5 @@
+import Case from "@/cases/live_import";
+
 export default () => {
-	return <div>SDF</div>;
+	return <Case>SDF</Case>;
 };

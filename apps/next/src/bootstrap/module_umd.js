@@ -5,8 +5,9 @@ import { fallback, noop } from "$utils/fn";
 import { deleteKeys, entries } from "$utils/object";
 import { EMPTYSTRING } from "$utils/string";
 import { Node, Meta, Module, Package } from "./umd_module_protocol";
-import test_package from "./test_package";
-import test_element_package from "./test_element_package";
+import react from "react";
+import reactDOM from "react-dom";
+import vue from "vue";
 import { Base64 } from "js-base64";
 import { isNotEmpty, isEmpty } from "$utils/asserts";
 

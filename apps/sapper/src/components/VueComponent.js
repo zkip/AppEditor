@@ -3,6 +3,7 @@ import {
 	is_client,
 	safe_not_equal,
 	SvelteComponent,
+	SvelteComponentDev,
 	init,
 	validate_slots,
 	noop,
@@ -11,6 +12,9 @@ import {
 	create_slot,
 	insert,
 	detach,
+	element,
+	claim_element,
+	attr,
 } from "svelte/internal";
 
 function instance($$self, $$props, $$invalidate) {
@@ -34,22 +38,27 @@ function create_fragment(ctx) {
 	const default_slot_template = ctx[1].default;
 	const default_slot = create_slot(default_slot_template, ctx, ctx[0], null);
 
-	let t;
-
+	let root;
 	const block = {
 		c: function create() {
-			t = text("XXV");
+			root = element("div");
+			console.log(root, "@@@@@@");
 			if (default_slot) default_slot.c();
 		},
 		l: function claim(nodes) {
-			t = claim_text(nodes, "XXV");
+			root = claim_element(nodes, "DIV", { class: true });
+			console.log("claim", nodes, root);
+			// root = claim_text(nodes, "XXV");
+			this.h();
 		},
 		m: function mount(target, anchor) {
-			insert(target, t, anchor);
-
+			console.log("@@@@@@", target, anchor, root);
 			if (default_slot) {
-				default_slot.m(t, null);
+				default_slot.m(target, anchor);
 			}
+		},
+		h: function hydrate() {
+			attr(root, "class", "SLDFJKL");
 		},
 		p: function update(ctx, [dirty]) {
 			if (default_slot) {
@@ -69,7 +78,7 @@ function create_fragment(ctx) {
 		i: noop,
 		o: noop,
 		d: function destroy(detaching) {
-			if (detaching) detach(t);
+			if (detaching) detach(root);
 		},
 	};
 
@@ -79,6 +88,7 @@ function create_fragment(ctx) {
 class SimpleComponent extends SvelteComponent {
 	constructor(options) {
 		super(options);
+		console.log(options, "=======<<<<");
 		init(this, options, instance, create_fragment, safe_not_equal, {});
 	}
 }

@@ -23,6 +23,7 @@
 		"react-redux": "^7.2.1",
 		"react-sortable-tree": "^2.8.0",
 		"redux": "^4.0.5",
+		"vue": "^2.6.12",
 		"yarn": "^1.22.5"
 	},
 	"peerDependencies": {

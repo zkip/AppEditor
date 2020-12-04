@@ -2,14 +2,16 @@
 	import { onMount } from "svelte";
 	import { getExport, getExports, load, setup } from "@/bootstrap/module_umd";
 	import { listen } from "$utils/fn";
-	import vue from "vue";
-	import react from "react";
-	import reactDOM from "react-dom";
-	import { xhr } from "$utils/xhr";
-	import { BSON } from "bsonfy";
-	import { Base64 } from "js-base64";
-	import VueComponent from "@/components/VueComponent";
+	// import vue from "vue";
+	// import react from "react";
+	// import reactDOM from "react-dom";
+	// import { xhr } from "$utils/xhr";
+	// import { BSON } from "bsonfy";
+	// import { Base64 } from "js-base64";
+	import genVueComponent from "@/components/VueComponent";
 	import { writable } from "svelte/store";
+
+	const VueComponent = genVueComponent();
 
 	let container, container_ant;
 
@@ -17,120 +19,120 @@
 
 	let shadow = "never";
 
-	const case1 = async function start() {
-		await load("packages/antd");
-		const antd = getExport("antd");
-		console.log(antd);
+	// const case1 = async function start() {
+	// 	await load("packages/antd");
+	// 	const antd = getExport("antd");
+	// 	console.log(antd);
 
-		const { Button, DatePicker } = antd;
+	// 	const { Button, DatePicker } = antd;
 
-		const DatePickerRC = react.createElement(DatePicker);
-		reactDOM.render(DatePickerRC, container_ant);
+	// 	const DatePickerRC = react.createElement(DatePicker);
+	// 	reactDOM.render(DatePickerRC, container_ant);
 
-		listen("mousemove")(({ clientX, clientY }) => {
-			// const BoxRC = react.createElement(Box, {
-			// 	width: clientX,
-			// 	height: clientY,
-			// });
-			// reactDOM.render(BoxRC, container);
-			const ButtonRC = react.createElement(Button, {
-				children: [clientX, clientY].join("-"),
-				onClick: () => {
-					console.log("Yah.");
-				},
-			});
-			reactDOM.render(ButtonRC, container_ant);
-		});
-	};
+	// 	listen("mousemove")(({ clientX, clientY }) => {
+	// 		// const BoxRC = react.createElement(Box, {
+	// 		// 	width: clientX,
+	// 		// 	height: clientY,
+	// 		// });
+	// 		// reactDOM.render(BoxRC, container);
+	// 		const ButtonRC = react.createElement(Button, {
+	// 			children: [clientX, clientY].join("-"),
+	// 			onClick: () => {
+	// 				console.log("Yah.");
+	// 			},
+	// 		});
+	// 		reactDOM.render(ButtonRC, container_ant);
+	// 	});
+	// };
 
-	const case2 = async function start() {
-		await load("packages/element-ui");
-		const element = getExports("packages/element-ui");
-		// console.log(element, "===");
-		// const element = await import("element-ui");
-		const { Button } = element;
-		vue.component("Button", Button);
-		// Object.entries(element).map(([name, component]) =>
-		// 	vue.component(name, component)
-		// );
-		// const button = vue.createElement("Button");
-		const ins = new vue({
-			// propsData:
-			render: (h) => h("Button", "sdfs"),
-		});
-		ins.$slots.default = ["Text"];
-		console.log(ins, Button, "=====>");
-		ins.$mount(container);
-		// console.log({ vue }, "@@@@@@@@@@@@");
-	};
+	// const case2 = async function start() {
+	// 	await load("packages/element-ui");
+	// 	const element = getExports("packages/element-ui");
+	// 	// console.log(element, "===");
+	// 	// const element = await import("element-ui");
+	// 	const { Button } = element;
+	// 	vue.component("Button", Button);
+	// 	// Object.entries(element).map(([name, component]) =>
+	// 	// 	vue.component(name, component)
+	// 	// );
+	// 	// const button = vue.createElement("Button");
+	// 	const ins = new vue({
+	// 		// propsData:
+	// 		render: (h) => h("Button", "sdfs"),
+	// 	});
+	// 	ins.$slots.default = ["Text"];
+	// 	console.log(ins, Button, "=====>");
+	// 	ins.$mount(container);
+	// 	// console.log({ vue }, "@@@@@@@@@@@@");
+	// };
 
-	const case3 = async function () {
-		await load("packages/antdv");
-		const ant = getExports("packages/antdv");
-		console.log(ant, "===");
-		// const element = await import("element-ui");
-		// const { Button } = ant;
-		// vue.component("Button", Button);
-		// Object.entries(element).map(([name, component]) =>
-		// 	vue.component(name, component)
-		// );
-		// const button = vue.createElement("Button");
-		// const ins = new vue({
-		// 	// propsData:
-		// 	render: (h) => h("Button", "sdfs"),
-		// });
-		// ins.$slots.default = ["Text"];
-		// console.log(ins, Button, "=====>");
-		// ins.$mount(container);
-		// console.log({ vue }, "@@@@@@@@@@@@");
-	};
+	// const case3 = async function () {
+	// 	await load("packages/antdv");
+	// 	const ant = getExports("packages/antdv");
+	// 	console.log(ant, "===");
+	// 	// const element = await import("element-ui");
+	// 	// const { Button } = ant;
+	// 	// vue.component("Button", Button);
+	// 	// Object.entries(element).map(([name, component]) =>
+	// 	// 	vue.component(name, component)
+	// 	// );
+	// 	// const button = vue.createElement("Button");
+	// 	// const ins = new vue({
+	// 	// 	// propsData:
+	// 	// 	render: (h) => h("Button", "sdfs"),
+	// 	// });
+	// 	// ins.$slots.default = ["Text"];
+	// 	// console.log(ins, Button, "=====>");
+	// 	// ins.$mount(container);
+	// 	// console.log({ vue }, "@@@@@@@@@@@@");
+	// };
 
-	const case4 = async function () {
-		console.log("case4 starting...");
-		await load("element-ui", "http://localhost:3006");
-		const { Card } = getExports("element-ui");
+	// const case4 = async function () {
+	// 	console.log("case4 starting...");
+	// 	await load("element-ui", "http://localhost:3006");
+	// 	const { Card } = getExports("element-ui");
 
-		vue.component("Card", Card);
-		const ins = new vue({
-			data: {
-				props: {
-					shadow: "always",
-					j: 0,
-				},
-			},
-			render(h) {
-				const v = this.$data.props.j;
-				return h(
-					"Card",
-					{
-						props: {
-							...this.$data.props,
-						},
-					},
-					[
-						`SDF${v}`,
-						h("div", { slot: "header" }, "header"),
-						"Jackie",
-					]
-				);
-			},
-		});
-		ins.$mount(container);
-		ins.$el.classList.add("container");
-		ins.$data.props.j = 344;
+	// 	vue.component("Card", Card);
+	// 	const ins = new vue({
+	// 		data: {
+	// 			props: {
+	// 				shadow: "always",
+	// 				j: 0,
+	// 			},
+	// 		},
+	// 		render(h) {
+	// 			const v = this.$data.props.j;
+	// 			return h(
+	// 				"Card",
+	// 				{
+	// 					props: {
+	// 						...this.$data.props,
+	// 					},
+	// 				},
+	// 				[
+	// 					`SDF${v}`,
+	// 					h("div", { slot: "header" }, "header"),
+	// 					"Jackie",
+	// 				]
+	// 			);
+	// 		},
+	// 	});
+	// 	ins.$mount(container);
+	// 	ins.$el.classList.add("container");
+	// 	ins.$data.props.j = 344;
 
-		setInterval(() => {
-			ins.$data.props.j++;
-		}, 100);
+	// 	setInterval(() => {
+	// 		ins.$data.props.j++;
+	// 	}, 100);
 
-		ins.$data.props.shadow = "hover";
+	// 	ins.$data.props.shadow = "hover";
 
-		console.log(ins);
-	};
+	// 	console.log(ins);
+	// };
 
-	const case5 = async function () {
-		console.log("case5 starting...");
-	};
+	// const case5 = async function () {
+	// 	console.log("case5 starting...");
+	// };
 
 	let count = 0;
 
@@ -202,7 +204,6 @@
 	<button on:click={loadPackage}>load</button>
 </div>
 <div class="VueComponent">
-	<span>{shadow},{count}</span>
 	<VueComponent props={{ shadow }}>
 		<div slot="header">
 			<span>{shadow},{count}</span>
@@ -211,15 +212,16 @@
 				<div>Header</div>
 			{/if}
 		</div>
-		<span slot="header">Body1</span>
-		<span slot="header">Body2</span>
+		<!-- <span slot="fds">Body1</span> -->
+		<!-- <span slot="header">Body2</span>
 		<div>
 			<span>Body</span>
 			<VueComponent props={{ shadow }}>
 				<div>Body3</div>
 			</VueComponent>
-		</div>
+		</div> -->
 	</VueComponent>
+	<span>{shadow},{count}</span>
 	<!-- <VueComponent props={{ shadow }}>
 		<div>Body3</div>
 	</VueComponent>

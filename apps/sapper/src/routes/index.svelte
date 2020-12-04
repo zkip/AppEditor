@@ -1,7 +1,9 @@
 <script>
 	// import LiveImport from "@/cases/live_import";
-	import Adapter from "@/cases/adapter";
+	// import Adapter from "@/cases/adapter";
+	import Case1 from "@/cases/examples/case1";
 </script>
 
 <!-- <LiveImport /> -->
-<Adapter />
+<!-- <Adapter /> -->
+<Case1 />
