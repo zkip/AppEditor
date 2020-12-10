@@ -24,7 +24,16 @@ export default () => {
 				}}
 				slots={{
 					header: [<div key={1}>Welcome.</div>, <h1 key={2}>X</h1>],
-					default: [<div key={1}>Hello V.{count}</div>],
+					default: [
+						<div key={1}>Hello V.{count}</div>,
+						<VueComponent
+							name="Card"
+							props={{ shadow: "hover" }}
+							slots={{
+								default: [<span>Hello</span>],
+							}}
+						/>,
+					],
 				}}
 			/>
 		</div>

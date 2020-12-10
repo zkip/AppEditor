@@ -8,21 +8,53 @@ import { useCallback } from "react";
 
 const isClient = () => !!process.browser;
 
+const CONST_SYM = Symbol();
+
 vue.component("special-transfer", {
 	name: "special-transfer",
 	props: {
 		element: {},
+		stamp: Symbol,
 	},
 	mounted() {
+		this.host = [].slice.call(this.$props.element.children);
+		this.frag = this.$props.element;
 		this.$el.replaceWith(this.$props.element);
 	},
-	beoforeDestroy() {
-		// console.log("-----------");
+	updated() {
+		// 保留第一个DOM
+		this.host.map((child, i) => i && this.frag.appendChild(child));
+
+		const host = [].slice.call(this.$props.element.children);
+		this.host[0].replaceWith(this.$props.element);
+		this.frag = this.$props.element;
+		this.host = host;
 	},
 	render(h) {
-		return h("span");
+		this.$props.stamp;
 	},
 });
+
+const slots_memorization = new Map();
+
+const useMemorizedSlots = (slots, vue_ins) => {
+	useEffect(() => {
+		if (vue_ins) {
+			const slots_momerized = slots_memorization.get(vue_ins);
+			// updat check filter
+			const need_changed = true;
+			if (need_changed) {
+				vue_ins.$data.slots.default = slots.default;
+				// console.log(slots, "+====");
+			}
+
+			slots_memorization.set(vue_ins, slots);
+		}
+		return () => {
+			slots_memorization.delete(vue_ins);
+		};
+	}, [slots, vue_ins]);
+};
 
 export default function VueComponent({
 	name,
@@ -31,7 +63,10 @@ export default function VueComponent({
 	...rest
 }) {
 	const root_ref = useRef();
-	const refs = useRef();
+	const vue_ins_ref = useRef();
+
+	useMemorizedSlots(slots, vue_ins_ref.current);
+
 	useEffect(() => {
 		const root = root_ref.current;
 		if (isClient && root) {
@@ -50,7 +85,7 @@ export default function VueComponent({
 			async function start() {
 				const { name } = component;
 
-				if (refs.current) return;
+				if (vue_ins_ref.current) return;
 
 				instance = new vue({
 					components: {
@@ -60,26 +95,30 @@ export default function VueComponent({
 						props: {
 							...props,
 						},
-						data: {
-							time: 0,
-						},
+						data: {},
+						slots,
 					},
 					render(h) {
-						const children_processed = Object.entries(slots).map(
-							([name, component]) => {
-								const frag = document.createDocumentFragment();
-								reactDOM.render(component, frag);
+						const children_processed = Object.entries(
+							this.$data.slots
+						).map(([name, components]) => {
+							const frag = document.createDocumentFragment();
+							reactDOM.render(components, frag);
 
-								const vnode = h("special-transfer", {
-									props: {
-										element: frag,
-									},
-									slot: name,
-								});
+							const need_change = name == "defaultx";
 
-								return vnode;
-							}
-						);
+							const stamp = need_change ? Symbol() : CONST_SYM;
+
+							const vnode = h("special-transfer", {
+								props: {
+									element: frag,
+									stamp,
+								},
+								slot: name,
+							});
+
+							return vnode;
+						});
 						return h(
 							name,
 							{
@@ -89,34 +128,12 @@ export default function VueComponent({
 						);
 					},
 				});
-				refs.current = instance;
+				vue_ins_ref.current = instance;
 
 				instance.$mount(root);
-
-				// setInterval(() => {
-				// 	instance.$data.data.time++;
-				// }, 100);
 			}
 		}
 	}, [root_ref.current]);
-
-	useEffect(() => {
-		if (refs.current) {
-			refs.current.$data.data.time++;
-
-			console.log(
-				refs.current.$data.data.time,
-				refs.current,
-				"=========="
-			);
-		}
-		// setInterval(() => {
-		// 	if (refs.current) {
-		// 		refs.current.$data.data.time++;
-		// 	}
-		// 	// instance.$data.data.time++;
-		// }, 100);
-	}, [props]);
 
 	return <div ref={root_ref}></div>;
 }
