@@ -48,7 +48,7 @@ function create_fragment(ctx) {
 			insert(target, t, anchor);
 
 			if (default_slot) {
-				default_slot.m(t, null);
+				default_slot.m(t, anchor);
 			}
 		},
 		p: function update(ctx, [dirty]) {

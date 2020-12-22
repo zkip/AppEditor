@@ -1,1 +1,4 @@
-<div>A</div>
+<div>
+	<span>A</span>
+	<span><slot /></span>
+</div>
