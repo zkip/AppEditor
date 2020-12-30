@@ -3,12 +3,24 @@
 const path = require("path");
 const cypress = require("cypress");
 const { exit } = require("process");
+const { existsSync } = require("fs");
+
+const cwd = process.cwd();
+
+function tryResolveConfigFile() {
+	const will_file = "./cypress.json";
+	if (existsSync(path.join(cwd, will_file))) {
+		return will_file;
+	} else {
+		return false;
+	}
+}
 
 cypress
 	.run({
-		project: path.resolve(process.cwd()),
+		project: path.resolve(cwd),
 		quiet: true,
-		configFile: false,
+		configFile: tryResolveConfigFile(),
 		config: {
 			video: false,
 		},
