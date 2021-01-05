@@ -2,6 +2,7 @@ import svelte from "rollup-plugin-svelte";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import zResolve from "@zrlps/rollup-plugin-resolve";
+import istanbul from "rollup-plugin-istanbul";
 import pkg from "./package.json";
 
 export default {
@@ -21,5 +22,8 @@ export default {
 		}),
 		resolve(),
 		commonjs(),
+		istanbul({
+			'cypress'
+		})
 	],
 };
