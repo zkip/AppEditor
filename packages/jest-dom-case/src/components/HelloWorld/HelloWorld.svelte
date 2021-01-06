@@ -4,9 +4,9 @@
 	let is_show = false;
 
 	onMount(() => {
-		// setTimeout(() => {
-		// 	is_show = true;
-		// }, 1000);
+		setTimeout(() => {
+			is_show = true;
+		}, 1000);
 	});
 </script>
 

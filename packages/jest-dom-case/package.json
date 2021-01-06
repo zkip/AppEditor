@@ -6,7 +6,8 @@
 	"scripts": {
 		"build": "rollup -c",
 		"dev": "rollup -c -w",
-		"test": "jest src"
+		"test": "jest src",
+		"test:dev": "jest src --watch"
 	},
 	"license": "MIT",
 	"devDependencies": {
