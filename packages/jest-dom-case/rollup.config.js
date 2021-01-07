@@ -22,8 +22,5 @@ export default {
 		}),
 		resolve(),
 		commonjs(),
-		istanbul({
-			'cypress'
-		})
 	],
 };

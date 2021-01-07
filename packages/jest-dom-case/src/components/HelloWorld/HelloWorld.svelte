@@ -16,3 +16,4 @@
 	<h2 flag="Cxn">B2</h2>
 {/if}
 <h3>B3</h3>
+<label> <span>username</span> <input type="text" /> </label>

@@ -16,6 +16,8 @@ function tryResolveConfigFile() {
 	}
 }
 
+function build() {}
+
 cypress
 	.run({
 		project: path.resolve(cwd),

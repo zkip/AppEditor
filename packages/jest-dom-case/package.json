@@ -6,7 +6,9 @@
 	"scripts": {
 		"build": "rollup -c",
 		"dev": "rollup -c -w",
-		"test": "jest src",
+		"test": "yarn test:unit; yarn test:e2e",
+		"test:unit": "node ../../scripts/test_unit.js",
+		"test:e2e": "node ../../scripts/test_e2e.js",
 		"test:dev": "jest src --watch"
 	},
 	"license": "MIT",
